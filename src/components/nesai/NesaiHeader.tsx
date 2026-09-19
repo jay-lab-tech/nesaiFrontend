@@ -1,5 +1,9 @@
 'use client';
 
+import { RotateCcw, X, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+
 interface NesaiHeaderProps {
   onClose: () => void;
   onClear: () => void;
@@ -7,54 +11,52 @@ interface NesaiHeaderProps {
 
 export function NesaiHeader({ onClose, onClear }: NesaiHeaderProps) {
   return (
-    <div className="nesai-header">
-      <div className="nesai-header-info">
-        <div className="nesai-header-avatar">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 8V4H8" />
-            <rect width="16" height="12" x="4" y="8" rx="2" />
-            <path d="M2 14h2" />
-            <path d="M20 14h2" />
-            <path d="M15 13v2" />
-            <path d="M9 13v2" />
-          </svg>
-        </div>
-        <div className="nesai-header-text">
-          <h3 className="nesai-header-title">NESAI</h3>
-          <p className="nesai-header-subtitle">
-            <span className="nesai-status-dot" />
-            Asisten Virtual SMKN 1 Subang
+    <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-200/80 dark:border-slate-800 bg-slate-900 text-slate-50 shrink-0 select-none">
+      <div className="flex items-center gap-2.5">
+        <Avatar className="h-8 w-8 rounded-lg bg-blue-600 border border-blue-400/30">
+          <AvatarFallback className="bg-blue-600 text-white rounded-lg">
+            <Sparkles className="h-4 w-4" />
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex flex-col">
+          <div className="flex items-center gap-1.5">
+            <h3 className="text-sm font-semibold tracking-tight text-white leading-none">
+              NESAI
+            </h3>
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-500/20 text-blue-300 border border-blue-400/20">
+              Navigator
+            </span>
+          </div>
+          <p className="text-[11px] text-slate-400 mt-1 flex items-center gap-1.5 leading-none">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            Asisten SMKN 1 Subang
           </p>
         </div>
       </div>
-      <div className="nesai-header-actions">
-        {/* Clear/Reset Button */}
-        <button
+
+      <div className="flex items-center gap-1">
+        <Button
           type="button"
-          className="nesai-header-btn"
+          variant="ghost"
+          size="icon"
           onClick={onClear}
-          aria-label="Reset percakapan"
           title="Reset percakapan"
+          aria-label="Reset percakapan"
+          className="h-8 w-8 text-slate-300 hover:text-white hover:bg-slate-800 rounded-md"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-            <path d="M21 3v5h-5" />
-            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-            <path d="M8 16H3v5" />
-          </svg>
-        </button>
-        {/* Close/Minimize Button */}
-        <button
+          <RotateCcw className="h-4 w-4" />
+        </Button>
+        <Button
           type="button"
-          className="nesai-header-btn"
+          variant="ghost"
+          size="icon"
           onClick={onClose}
-          aria-label="Tutup chat"
-          title="Tutup chat"
+          title="Tutup"
+          aria-label="Tutup jendela chat"
+          className="h-8 w-8 text-slate-300 hover:text-white hover:bg-slate-800 rounded-md"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M6 9l6 6 6-6" />
-          </svg>
-        </button>
+          <X className="h-4 w-4" />
+        </Button>
       </div>
     </div>
   );

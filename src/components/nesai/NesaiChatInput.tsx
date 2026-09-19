@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { ArrowUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface NesaiChatInputProps {
   onSend: (text: string) => void;
@@ -34,7 +36,6 @@ export function NesaiChatInput({ onSend, disabled }: NesaiChatInputProps) {
     if (!trimmed || disabled) return;
     onSend(trimmed);
     setInput('');
-    // Reset textarea height
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
@@ -51,34 +52,44 @@ export function NesaiChatInput({ onSend, disabled }: NesaiChatInputProps) {
   const canSend = input.trim().length > 0 && !disabled && !isOverLimit;
 
   return (
-    <div className="nesai-input-container">
-      <div className={`nesai-input-wrapper ${isOverLimit ? 'nesai-input-error' : ''}`}>
+    <div className="p-3 bg-white dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800 shrink-0">
+      <div
+        className={`flex items-end gap-2 rounded-xl bg-slate-50/80 dark:bg-slate-900 border transition-all px-3 py-1.5 ${
+          isOverLimit
+            ? 'border-red-400 ring-2 ring-red-100 dark:ring-red-950'
+            : 'border-slate-200/90 dark:border-slate-800 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100 dark:focus-within:ring-blue-950/60'
+        }`}
+      >
         <textarea
           ref={textareaRef}
-          className="nesai-input-field"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Ketik pertanyaan Anda..."
+          placeholder="Tanya NESAI tentang jurusan, PPDB..."
           disabled={disabled}
           rows={1}
-          aria-label="Pesan untuk NESAI"
+          aria-label="Tanya NESAI"
+          className="flex-1 max-h-[120px] min-h-[36px] resize-none bg-transparent py-1.5 text-xs sm:text-sm text-slate-800 dark:text-slate-100 placeholder:text-slate-400 outline-none leading-relaxed"
         />
-        <button
+
+        <Button
           type="button"
-          className={`nesai-send-btn ${canSend ? 'nesai-send-btn-active' : ''}`}
-          onClick={handleSubmit}
+          size="icon"
           disabled={!canSend}
-          aria-label="Kirim pesan"
+          onClick={handleSubmit}
+          className={`h-8 w-8 rounded-lg shrink-0 transition-all ${
+            canSend
+              ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-xs'
+              : 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
+          }`}
+          aria-label="Kirim pertanyaan"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z" />
-            <path d="m21.854 2.147-10.94 10.939" />
-          </svg>
-        </button>
+          <ArrowUp className="h-4 w-4" />
+        </Button>
       </div>
+
       {isOverLimit && (
-        <p className="nesai-char-warning">
+        <p className="text-[11px] text-red-500 mt-1.5 px-1">
           Batas {MAX_MESSAGE_LENGTH} karakter terlampaui ({input.length}/{MAX_MESSAGE_LENGTH})
         </p>
       )}
