@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./nesai-chat.css";
 
 :root {
   --background: #ffffff;
