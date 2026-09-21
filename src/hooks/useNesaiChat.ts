@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, startTransition } from 'react';
 import { ChatMessage } from '@/types/nesai';
 import { sendNesaiMessage } from '@/lib/api/nesai';
 
@@ -44,7 +44,9 @@ export function useNesaiChat() {
   useEffect(() => {
     const stored = loadMessagesFromSession();
     if (stored && stored.length > 0) {
-      setMessages(stored);
+      startTransition(() => {
+        setMessages(stored);
+      });
     }
   }, []);
 

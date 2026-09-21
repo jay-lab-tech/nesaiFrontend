@@ -1,5 +1,50 @@
-import { ApiHealth } from "@/components/api-health";
+import { HeroSection } from '@/components/home/HeroSection';
+import { PrincipalSection } from '@/components/home/PrincipalSection';
+import { MajorsSection } from '@/components/home/MajorsSection';
+import { FacilitiesSection } from '@/components/home/FacilitiesSection';
+import { StatsSection } from '@/components/home/StatsSection';
+import { NewsSection } from '@/components/home/NewsSection';
+import { AchievementsSection } from '@/components/home/AchievementsSection';
+import { TestimonialsSection } from '@/components/home/TestimonialsSection';
+import { IndustryPartnersSection } from '@/components/home/IndustryPartnersSection';
+import { CtaSection } from '@/components/home/CtaSection';
+import { NesaiPromoBar } from '@/components/home/NesaiPromoBar';
 
-export default function Home() {
-  return <main className="mx-auto flex min-h-screen max-w-4xl items-center px-6 py-20"><section><p className="text-sm font-semibold tracking-[0.2em] text-blue-700">NESAS</p><h1 className="mt-4 text-4xl font-bold tracking-tight text-slate-950 sm:text-6xl">Development foundation is ready.</h1><p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">The product interface will be implemented in features. This page verifies Next.js, Tailwind CSS, environment configuration, and the Laravel API connection.</p><ApiHealth /></section></main>;
+export default function HomePage() {
+  return (
+    <div className="selection:bg-cyan-500 selection:text-white">
+      {/* 1. Hero Section with dark tech theme & badges */}
+      <HeroSection />
+
+      {/* 2. Sambutan Kepala Sekolah */}
+      <PrincipalSection />
+
+      {/* 3. Pilihan Jurusan / Program Keahlian (6 Jurusan) */}
+      <MajorsSection />
+
+      {/* 4. Fasilitas Belajar Berstandar Industri (6 Fasilitas) */}
+      <FacilitiesSection />
+
+      {/* 5. Statistik Sekolah Counter Banner */}
+      <StatsSection />
+
+      {/* 6. Berita & Informasi Sekolah */}
+      <NewsSection />
+
+      {/* 7. Prestasi Gemilang Siswa */}
+      <AchievementsSection />
+
+      {/* 8. Testimoni Alumni Sukses */}
+      <TestimonialsSection />
+
+      {/* 9. Mitra Industri Terkemuka */}
+      <IndustryPartnersSection />
+
+      {/* 10. Call to Action (CTA) PPDB Pendaftaran */}
+      <CtaSection />
+
+      {/* 11. Interactive NESAI Promo Bar */}
+      <NesaiPromoBar />
+    </div>
+  );
 }
