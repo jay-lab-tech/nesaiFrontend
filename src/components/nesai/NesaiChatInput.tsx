@@ -69,7 +69,7 @@ export function NesaiChatInput({ onSend, disabled }: NesaiChatInputProps) {
           disabled={disabled}
           rows={1}
           aria-label="Tanya NESAI"
-          className="flex-1 max-h-[120px] min-h-[36px] resize-none bg-transparent py-1.5 text-xs sm:text-sm text-slate-800 dark:text-slate-100 placeholder:text-slate-400 outline-none leading-relaxed"
+          className="flex-1 min-w-0 max-h-[120px] min-h-[40px] resize-none bg-transparent py-1.5 text-xs sm:text-sm text-slate-800 dark:text-slate-100 placeholder:text-slate-400 outline-none leading-relaxed"
         />
 
         <Button

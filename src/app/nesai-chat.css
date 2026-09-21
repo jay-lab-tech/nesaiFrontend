@@ -8,6 +8,14 @@
 .nesai-prose {
   font-size: 0.8125rem; /* 13px */
   line-height: 1.55;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.nesai-prose table {
+  display: block;
+  overflow-x: auto;
+  max-width: 100%;
 }
 
 .nesai-prose p {

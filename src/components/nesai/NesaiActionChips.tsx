@@ -13,7 +13,7 @@ export function NesaiActionChips({ actions }: NesaiActionChipsProps) {
   if (!actions || actions.length === 0) return null;
 
   return (
-    <div className="flex flex-wrap gap-1.5 mt-2.5 pt-1">
+    <div className="flex flex-wrap gap-1.5 mt-2 pt-1.5">
       {actions.map((action, index) => {
         if (action.type === 'navigate') {
           return (

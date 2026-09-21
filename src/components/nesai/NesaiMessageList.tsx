@@ -22,7 +22,7 @@ export function NesaiMessageList({ messages, isLoading }: NesaiMessageListProps)
 
   return (
     <ScrollArea className="flex-1 px-3.5 py-3">
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-3">
         {messages.map((message) => (
           <NesaiMessageItem key={message.id} message={message} />
         ))}

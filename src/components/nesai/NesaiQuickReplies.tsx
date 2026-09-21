@@ -29,7 +29,7 @@ const QUICK_QUESTIONS = [
 
 export function NesaiQuickReplies({ onSelect, disabled }: NesaiQuickRepliesProps) {
   return (
-    <div className="p-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30">
+    <div className="px-3.5 py-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30">
       <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2 px-1">
         Coba tanyakan:
       </p>

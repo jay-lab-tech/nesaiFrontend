@@ -30,7 +30,7 @@ export function NesaiMessageItem({ message }: NesaiMessageItemProps) {
         </Avatar>
       )}
 
-      <div className={`max-w-[85%] flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
+      <div className={`max-w-[85%] min-w-0 flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
         <div
           className={`rounded-2xl px-3.5 py-2.5 text-xs sm:text-[13px] leading-relaxed break-words shadow-2xs ${
             isUser

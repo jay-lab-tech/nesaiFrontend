@@ -1,19 +1,22 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { Sparkles, X } from 'lucide-react';
 import { useNesaiChat } from '@/hooks/useNesaiChat';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { NESAI_OPEN_EVENT, NesaiOpenDetail } from '@/lib/nesai-events';
 import { NesaiHeader } from './NesaiHeader';
-import { NesaiMessageList } from './NesaiMessageList';
-import { NesaiQuickReplies } from './NesaiQuickReplies';
-import { NesaiChatInput } from './NesaiChatInput';
+import { NesaiChatBody } from './NesaiChatBody';
 
 export function NesaiChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const { messages, isLoading, sendMessage, clearChat } = useNesaiChat();
+  const pathname = usePathname();
+
+  // Hide widget entirely on the dedicated NESAI chat page
+  const isNesaiPage = pathname === '/tanya-nesai';
 
   useEffect(() => {
     const handleOpen = (e: Event) => {
@@ -38,41 +41,31 @@ export function NesaiChatWidget() {
     setIsOpen(false);
   }, []);
 
-  const handleSend = useCallback(
-    (text: string) => {
-      sendMessage(text);
-    },
-    [sendMessage],
-  );
-
-  // Show quick replies only when there's just the welcome message
-  const showQuickReplies = messages.length <= 1 && messages[0]?.sender === 'nesai';
+  // Don't render anything on the dedicated NESAI page
+  if (isNesaiPage) return null;
 
   return (
     <>
       {/* Chat Window Container using shadcn Card */}
       <Card
-        className={`fixed bottom-20 right-4 sm:right-6 z-50 w-[calc(100vw-32px)] sm:w-[410px] max-h-[620px] h-[calc(100vh-120px)] rounded-2xl bg-white dark:bg-slate-950 border border-slate-200/90 dark:border-slate-800 shadow-xl overflow-hidden flex flex-col transition-all duration-300 ${
+        className={`fixed bottom-20 right-3 sm:right-6 z-[9998] w-[calc(100vw-24px)] sm:w-[410px] max-h-[620px] h-[calc(100vh-120px)] rounded-2xl bg-white dark:bg-slate-950 border border-slate-200/90 dark:border-slate-800 shadow-xl overflow-hidden flex flex-col transition-all duration-300 ${
           isOpen
             ? 'opacity-100 translate-y-0 pointer-events-auto scale-100'
             : 'opacity-0 translate-y-4 pointer-events-none scale-95'
         }`}
       >
-        <NesaiHeader onClose={handleClose} onClear={clearChat} />
+        <NesaiHeader onClose={handleClose} onClear={clearChat} variant="floating" />
 
-        <div className="flex-1 min-h-0 flex flex-col bg-slate-50/40 dark:bg-slate-900/20 overflow-hidden">
-          <NesaiMessageList messages={messages} isLoading={isLoading} />
-
-          {showQuickReplies && (
-            <NesaiQuickReplies onSelect={handleSend} disabled={isLoading} />
-          )}
-        </div>
-
-        <NesaiChatInput onSend={handleSend} disabled={isLoading} />
+        <NesaiChatBody
+          messages={messages}
+          isLoading={isLoading}
+          sendMessage={sendMessage}
+          variant="floating"
+        />
       </Card>
 
       {/* Launcher Button: Clean institutional pill on desktop, compact on mobile */}
-      <div className="fixed bottom-5 right-4 sm:right-6 z-50">
+      <div className="fixed bottom-5 right-3 sm:right-6 z-[9999]">
         <Button
           type="button"
           onClick={toggleChat}
@@ -104,3 +97,4 @@ export function NesaiChatWidget() {
     </>
   );
 }
+

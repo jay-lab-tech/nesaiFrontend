@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, X, Sparkles, GraduationCap, ChevronRight } from 'lucide-react';
-import { openNesaiChat } from '@/lib/nesai-events';
 
 const NAV_LINKS = [
   { label: 'Beranda', href: '/' },
@@ -61,14 +60,13 @@ export function Navbar() {
 
         {/* Action Buttons */}
         <div className="hidden sm:flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => openNesaiChat('Halo NESAI, bisa bantu jelaskan informasi umum SMKN 1 Subang?')}
+          <Link
+            href="/tanya-nesai"
             className="flex items-center gap-2 rounded-full border border-cyan-300/80 bg-gradient-to-r from-cyan-50 to-blue-50 px-3.5 py-1.5 text-xs font-semibold text-cyan-800 hover:border-cyan-400 hover:bg-cyan-100/70 transition-all shadow-sm group"
           >
             <Sparkles className="h-3.5 w-3.5 text-cyan-600 group-hover:rotate-12 transition-transform" />
             <span>Tanya NESAI</span>
-          </button>
+          </Link>
 
           <Link
             href="/ppdb"
@@ -81,14 +79,13 @@ export function Navbar() {
 
         {/* Mobile menu button */}
         <div className="flex lg:hidden items-center gap-2">
-          <button
-            type="button"
-            onClick={() => openNesaiChat()}
+          <Link
+            href="/tanya-nesai"
             className="sm:hidden flex items-center gap-1.5 rounded-full bg-cyan-50 border border-cyan-300 px-2.5 py-1 text-xs font-medium text-cyan-800"
           >
             <Sparkles className="h-3 w-3 text-cyan-600" />
             <span>NESAI</span>
-          </button>
+          </Link>
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -124,17 +121,14 @@ export function Navbar() {
           </div>
 
           <div className="pt-3 border-t border-slate-100 flex flex-col gap-2.5">
-            <button
-              type="button"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                openNesaiChat();
-              }}
+            <Link
+              href="/tanya-nesai"
+              onClick={() => setMobileMenuOpen(false)}
               className="w-full flex items-center justify-center gap-2 rounded-xl border border-cyan-300 bg-cyan-50/80 py-2.5 text-sm font-semibold text-cyan-800"
             >
               <Sparkles className="h-4 w-4 text-cyan-600" />
               <span>Konsultasi dengan Asisten NESAI</span>
-            </button>
+            </Link>
             <Link
               href="/ppdb"
               onClick={() => setMobileMenuOpen(false)}

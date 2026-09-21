@@ -5,20 +5,21 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 interface NesaiHeaderProps {
-  onClose: () => void;
+  onClose?: () => void;
   onClear: () => void;
+  variant?: 'floating' | 'fullpage';
 }
 
-export function NesaiHeader({ onClose, onClear }: NesaiHeaderProps) {
+export function NesaiHeader({ onClose, onClear, variant = 'floating' }: NesaiHeaderProps) {
   return (
-    <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-200/80 dark:border-slate-800 bg-slate-900 text-slate-50 shrink-0 select-none">
-      <div className="flex items-center gap-2.5">
-        <Avatar className="h-8 w-8 rounded-lg bg-blue-600 border border-blue-400/30">
+    <div className={`flex items-center justify-between px-4 py-3.5 border-b border-slate-200/80 dark:border-slate-800 bg-slate-900 text-slate-50 shrink-0 select-none ${variant === 'fullpage' ? 'rounded-t-2xl' : ''}`}>
+      <div className="flex items-center gap-2.5 min-w-0">
+        <Avatar className="h-8 w-8 rounded-lg bg-blue-600 border border-blue-400/30 shrink-0">
           <AvatarFallback className="bg-blue-600 text-white rounded-lg">
             <Sparkles className="h-4 w-4" />
           </AvatarFallback>
         </Avatar>
-        <div className="flex flex-col">
+        <div className="flex flex-col min-w-0">
           <div className="flex items-center gap-1.5">
             <h3 className="text-sm font-semibold tracking-tight text-white leading-none">
               NESAI
@@ -28,13 +29,13 @@ export function NesaiHeader({ onClose, onClear }: NesaiHeaderProps) {
             </span>
           </div>
           <p className="text-[11px] text-slate-400 mt-1 flex items-center gap-1.5 leading-none">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
             Asisten SMKN 1 Subang
           </p>
         </div>
       </div>
 
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 shrink-0">
         <Button
           type="button"
           variant="ghost"
@@ -46,18 +47,21 @@ export function NesaiHeader({ onClose, onClear }: NesaiHeaderProps) {
         >
           <RotateCcw className="h-4 w-4" />
         </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={onClose}
-          title="Tutup"
-          aria-label="Tutup jendela chat"
-          className="h-8 w-8 text-slate-300 hover:text-white hover:bg-slate-800 rounded-md"
-        >
-          <X className="h-4 w-4" />
-        </Button>
+        {variant === 'floating' && onClose && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            title="Tutup"
+            aria-label="Tutup jendela chat"
+            className="h-8 w-8 text-slate-300 hover:text-white hover:bg-slate-800 rounded-md"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        )}
       </div>
     </div>
   );
 }
+

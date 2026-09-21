@@ -11,7 +11,7 @@ export function NesaiSourceBadges({ sources }: NesaiSourceBadgesProps) {
   if (!sources || sources.length === 0) return null;
 
   return (
-    <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-1.5">
+    <div className="mt-2 pt-1.5 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-1.5">
       <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
         <BookOpen className="h-3 w-3 text-slate-400" />
         <span>Sumber Resmi:</span>
