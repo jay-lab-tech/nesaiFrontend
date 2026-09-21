@@ -1,0 +1,191 @@
+# Fitur Rekomendasi Jurusan Berbasis Minat via Chat AI
+
+Lead meminta fitur utama: **AI chatbot NESAI dapat merekomendasikan jurusan SMKN 1 Subang berdasarkan minat pengguna, lewat chat maupun endpoint form terpisah.**
+
+## Ringkasan Keputusan User
+
+| Pertanyaan | Keputusan |
+|---|---|
+| Akses fitur | **Keduanya** — via chat NESAI + endpoint `POST /api/v1/recommendations/majors` |
+| Sumber data pengayaan | Tim konten akan sediakan data riil, tapi **generate draft template dulu** sebagai kerangka yang bisa diedit |
+| Pendekatan teknis | **Hybrid** — data config diperkaya + tool scoring PHP (`RecommendJurusanTool`), LLM menyajikan hasil |
+
+---
+
+## Proposed Changes
+
+Karena ini cukup besar, saya pecah jadi **3 sub-task berurutan** (dikerjakan satu per sesi sesuai aturan kerja):
+
+---
+
+### Sub-task 1: Perkaya Data `config/jurusan.php` (Draft Template)
+
+#### [MODIFY] [jurusan.php](file:///d:/laragon/www/nesaiBackend/config/jurusan.php)
+
+Menambahkan field-field baru per jurusan yang dibutuhkan untuk rekomendasi:
+
+```php
+[
+    'nama' => 'Pengembangan Perangkat Lunak dan Gim',
+    'slug' => 'pplg',
+    'deskripsi' => 'Mempelajari pemrograman, pengembangan aplikasi, web, mobile, dan game...',
+    'kuota' => 10,
+    // === Field baru untuk rekomendasi ===
+    'kata_kunci_minat' => [
+        'coding', 'programming', 'komputer', 'game', 'aplikasi',
+        'web', 'teknologi', 'software', 'digital', 'IT',
+    ],
+    'prospek_karir' => [
+        'Software Developer', 'Web Developer', 'Game Developer',
+        'Mobile App Developer', 'IT Consultant',
+    ],
+    'mata_pelajaran_utama' => [
+        'Pemrograman Dasar', 'Pemrograman Berorientasi Objek',
+        'Basis Data', 'Pemrograman Web dan Perangkat Bergerak',
+    ],
+],
+```
+
+**Field baru yang ditambahkan:**
+
+| Field | Tipe | Fungsi |
+|---|---|---|
+| `slug` | `string` | Identifier URL-safe, dipakai oleh `NavigateToPageTool` untuk deep-link ke `/jurusan/{slug}` |
+| `kata_kunci_minat` | `array<string>` | Kata kunci yang digunakan tool scoring untuk mencocokkan minat user |
+| `prospek_karir` | `array<string>` | Daftar profesi lulusan, membantu user yang bertanya "kalau mau jadi X, masuk jurusan apa?" |
+| `mata_pelajaran_utama` | `array<string>` | Mapel inti jurusan, membantu user yang bertanya soal kurikulum |
+
+> [!IMPORTANT]  
+> Data ini adalah **draft template** — deskripsi dan kata kunci dibuat representatif untuk SMK tapi perlu diedit oleh tim konten agar sesuai data riil SMKN 1 Subang. Setiap entry akan ditandai komentar `/* DRAFT — sesuaikan dengan data sekolah */`.
+
+---
+
+### Sub-task 2: Buat `RecommendJurusanTool` (Scoring Rule-Based)
+
+#### [NEW] [RecommendJurusanTool.php](file:///d:/laragon/www/nesaiBackend/app/Ai/Tools/RecommendJurusanTool.php)
+
+Tool baru yang menerima daftar minat dari LLM (diekstrak dari percakapan user) dan melakukan **scoring rule-based di PHP**:
+
+**Alur logic:**
+```
+Input: interests = ["komputer", "game", "programming"]
+                │
+                ▼
+    Untuk setiap jurusan di config/jurusan.php:
+        score = 0
+        Untuk setiap kata_kunci_minat jurusan:
+            Jika interest user cocok (str_contains / fuzzy) → score++
+        Untuk setiap prospek_karir jurusan:
+            Jika interest user cocok → score++
+                │
+                ▼
+    Urutkan jurusan berdasarkan score DESC
+                │
+                ▼
+    Return top-N hasil (default: 3) beserta skor dan alasan kecocokan
+```
+
+**Schema tool (parameter untuk Gemini function calling):**
+```php
+public function schema(JsonSchema $schema): array
+{
+    return [
+        'interests' => $schema->array()
+            ->items($schema->string())
+            ->description('Daftar minat, hobi, atau ketertarikan pengguna yang diekstrak dari percakapan (contoh: ["komputer", "desain", "bisnis"]).')
+            ->required(),
+    ];
+}
+```
+
+**Output ke LLM:**
+```json
+{
+    "rekomendasi": [
+        {
+            "nama": "Pengembangan Perangkat Lunak dan Gim",
+            "slug": "pplg",
+            "skor_kecocokan": 5,
+            "alasan": "Cocok dengan minat: komputer, game, programming",
+            "prospek_karir": ["Software Developer", "Game Developer", "..."]
+        }
+    ],
+    "total_minat_diproses": 3
+}
+```
+
+#### [MODIFY] [SchoolAssistantAgent.php](file:///d:/laragon/www/nesaiBackend/app/Ai/Agents/SchoolAssistantAgent.php)
+
+- Menambahkan `RecommendJurusanTool` ke array `tools()`.
+- Menambahkan instruksi rekomendasi di system prompt:
+  - Kapan harus memanggil tool `recommend_jurusan` (user menyebut minat/hobi/ketertarikan).
+  - Cara menyajikan hasil rekomendasi (ranking, alasan, saran navigasi ke halaman detail jurusan).
+
+#### [MODIFY] [NesaiService.php](file:///d:/laragon/www/nesaiBackend/app/Services/Nesai/NesaiService.php)
+
+- Menambahkan ekstraksi `toolResults` untuk tool `recommend_jurusan`.
+- Menambahkan intent `'major_recommendation'` ketika tool rekomendasi digunakan.
+- Menyisipkan source attribution `'Rekomendasi Jurusan SMKN 1 Subang (config/jurusan.php)'`.
+
+---
+
+### Sub-task 3: Rewire Endpoint `recommendations/majors`
+
+#### [MODIFY] [RecommendationService.php](file:///d:/laragon/www/nesaiBackend/app/Services/RecommendationService.php)
+
+Mengganti stub kosong dengan logic yang **menggunakan kembali scoring engine** dari `RecommendJurusanTool` (diextract ke trait/helper shared):
+
+```
+POST /api/v1/recommendations/majors
+Body: { "interests": ["komputer", "game", "desain"] }
+
+Response: {
+    "data": [
+        { "nama": "PPLG", "skor": 5, "alasan": "...", "prospek_karir": [...] },
+        ...
+    ],
+    "meta": { "status": "scored" }
+}
+```
+
+> [!NOTE]
+> Logic scoring **tidak di-duplikasi** — akan diextract ke sebuah class helper (`App\Ai\Support\JurusanScorer`) yang dipakai oleh `RecommendJurusanTool` dan `RecommendationService`.
+
+---
+
+## User Review Required
+
+> [!IMPORTANT]
+> **Urutan eksekusi**: Mengingat aturan "satu task per sesi", saya akan mulai dari **Sub-task 1** (perkaya data config) setelah plan ini di-approve. Apakah urutan ini OK, atau ada prioritas lain?
+
+> [!WARNING]
+> **Data draft vs data riil**: Deskripsi, kata kunci minat, prospek karir, dan mapel yang saya generate di Sub-task 1 akan bersifat **template representatif umum SMK**. Tim konten **wajib review** sebelum demo juri karena ketepatan data ini langsung mempengaruhi kualitas rekomendasi AI.
+
+## Open Questions
+
+> [!IMPORTANT]
+> **Top-N rekomendasi**: Berapa jurusan maksimal yang ditampilkan sebagai hasil rekomendasi? Default saya usulkan **3 teratas**. Apakah OK, atau mau angka lain?
+
+> [!NOTE]
+> **Slug jurusan**: Saat ini `config/jurusan.php` tidak punya field `slug`. Saya akan menambahkannya agar `NavigateToPageTool` bisa deep-link ke `/jurusan/pplg`, `/jurusan/tkj`, dll. Apakah slug yang dipakai di frontend Next.js sudah fix, atau belum? Jika sudah, tolong share daftarnya agar sinkron.
+
+---
+
+## Verification Plan
+
+### Automated Tests
+Setiap sub-task akan diverifikasi:
+```bash
+# Syntax check semua file yang diubah
+php -l config/jurusan.php
+php -l app/Ai/Tools/RecommendJurusanTool.php
+php -l app/Ai/Agents/SchoolAssistantAgent.php
+php -l app/Services/Nesai/NesaiService.php
+
+# Unit test scoring logic
+php artisan test --filter=JurusanScorerTest
+```
+
+### Manual Verification
+- Uji chat: "Aku suka komputer dan bikin game" → harus memicu `recommend_jurusan` tool → response berisi PPLG di ranking teratas.
+- Uji endpoint: `POST /api/v1/recommendations/majors` dengan body `{"interests": ["akuntansi", "keuangan"]}` → harus return AKL.
