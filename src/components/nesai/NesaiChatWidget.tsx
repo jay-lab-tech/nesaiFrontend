@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNesaiChat } from '@/hooks/useNesaiChat';
+import { NESAI_OPEN_EVENT, NesaiOpenDetail } from '@/lib/nesai-events';
 import { NesaiHeader } from './NesaiHeader';
 import { NesaiMessageList } from './NesaiMessageList';
 import { NesaiQuickReplies } from './NesaiQuickReplies';
@@ -10,6 +11,21 @@ import { NesaiChatInput } from './NesaiChatInput';
 export function NesaiChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const { messages, isLoading, sendMessage, clearChat } = useNesaiChat();
+
+  useEffect(() => {
+    const handleOpen = (e: Event) => {
+      const customEvent = e as CustomEvent<NesaiOpenDetail>;
+      setIsOpen(true);
+      if (customEvent.detail?.prompt) {
+        sendMessage(customEvent.detail.prompt);
+      }
+    };
+
+    window.addEventListener(NESAI_OPEN_EVENT, handleOpen);
+    return () => {
+      window.removeEventListener(NESAI_OPEN_EVENT, handleOpen);
+    };
+  }, [sendMessage]);
 
   const toggleChat = useCallback(() => {
     setIsOpen((prev) => !prev);
