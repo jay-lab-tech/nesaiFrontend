@@ -1,9 +1,20 @@
 'use client';
 import Link from 'next/link';
-import { ArrowRight, Bot, ShieldCheck, Award, Sparkles, ChevronDown } from 'lucide-react';
+import type { FormEvent } from 'react';
+import { ArrowRight, Bot, ShieldCheck, Award, Sparkles, ChevronDown, Search } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { openNesaiChat } from '@/lib/nesai-events';
 
 export function HeroSection() {
+  const router = useRouter();
+
+  function handleSearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const query = new FormData(event.currentTarget).get('query')?.toString().trim();
+    if (query) router.push(`/jurusan?search=${encodeURIComponent(query)}`);
+    else router.push('/jurusan');
+  }
+
   return (
     <section className="relative overflow-hidden bg-slate-950 text-white pt-16 pb-24 md:pt-24 md:pb-32">
       {/* Background Graphic & Glows */}
@@ -54,6 +65,24 @@ export function HeroSection() {
           <strong className="text-cyan-300 font-semibold">NESAI</strong> untuk memandu masa depanmu.
         </p>
 
+        {/* School-style search bar inspired by the selected reference */}
+        <form onSubmit={handleSearch} className="mx-auto mb-8 flex max-w-3xl flex-col gap-2 rounded-2xl bg-white p-2 shadow-2xl shadow-slate-950/40 sm:flex-row">
+          <label htmlFor="school-search" className="sr-only">Cari informasi sekolah</label>
+          <div className="flex min-h-12 flex-1 items-center gap-3 rounded-xl px-4 text-left text-slate-500">
+            <Search className="h-5 w-5 shrink-0 text-blue-600" />
+            <input
+              id="school-search"
+              name="query"
+              type="search"
+              placeholder="Cari jurusan, fasilitas, berita, atau informasi PPDB..."
+              className="w-full bg-transparent text-sm outline-none placeholder:text-slate-400 sm:text-base"
+            />
+          </div>
+          <button type="submit" className="inline-flex min-h-12 items-center justify-center rounded-xl bg-amber-500 px-7 font-bold text-slate-950 transition hover:bg-amber-400">
+            Cari
+          </button>
+        </form>
+
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto">
           <Link
@@ -82,11 +111,11 @@ export function HeroSection() {
           </div>
           <div className="p-3 rounded-lg bg-slate-900/40 border border-slate-800">
             <p className="text-xs text-slate-400 font-medium">Sertifikasi</p>
-            <p className="text-sm font-semibold text-slate-200">BNSP, Cisco, MikroTik</p>
+            <p className="text-sm font-semibold text-slate-200">Kompetensi sesuai industri</p>
           </div>
           <div className="p-3 rounded-lg bg-slate-900/40 border border-slate-800">
             <p className="text-xs text-slate-400 font-medium">Penyaluran Kerja</p>
-            <p className="text-sm font-semibold text-slate-200">BKK Aktif 50+ Mitra</p>
+            <p className="text-sm font-semibold text-slate-200">Informasi karier & alumni</p>
           </div>
           <div className="p-3 rounded-lg bg-slate-900/40 border border-slate-800">
             <p className="text-xs text-slate-400 font-medium">Bimbingan Karir</p>
