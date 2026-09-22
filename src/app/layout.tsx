@@ -1,11 +1,17 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono, Open_Sans, Poppins } from "next/font/google";
 import "./globals.css";
 import { AppShell } from "@/components/app-shell";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const openSans = Open_Sans({
+  variable: "--font-open-sans",
   subsets: ["latin"],
+});
+
+const poppins = Poppins({
+  variable: "--font-poppins",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 const geistMono = Geist_Mono({
@@ -26,7 +32,7 @@ export default function RootLayout({
   return (
     <html
       lang="id"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${openSans.variable} ${poppins.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-white text-slate-900 overflow-x-hidden">
         <AppShell>{children}</AppShell>
