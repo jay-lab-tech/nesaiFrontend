@@ -7,20 +7,23 @@
 // ── Generic API Response Types ──────────────────────────────
 
 export interface ApiResponse<T> {
-  success?: boolean;
   data: T;
-  message?: string;
+  meta: Record<string, unknown> | null;
+  message: string | null;
+}
+
+export interface Pagination<T> {
+  current_page: number;
+  data: T[];
+  last_page: number;
+  per_page: number;
+  total: number;
 }
 
 export interface ApiPaginatedResponse<T> {
-  success?: boolean;
-  data: T[];
-  meta?: {
-    current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
-  };
+  data: Pagination<T>;
+  meta: Record<string, unknown> | null;
+  message: string | null;
 }
 
 export interface ApiErrorResponse {
@@ -52,6 +55,8 @@ export interface School {
   staff_count?: number | null;
   student_count?: number | null;
   classroom_count?: number | null;
+  classroom_count_min?: number | null;
+  classroom_count_max?: number | null;
   stats_updated_at?: string | null;
   description?: string | null;
   vision?: string | null;
@@ -98,9 +103,11 @@ export interface Major {
 export interface Facility {
   id: number;
   name: string;
-  category?: string | null;
-  created_at?: string;
-  updated_at?: string;
+  category: string | null;
+  description: string | null;
+  is_placeholder: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export const FACILITY_CATEGORIES = [

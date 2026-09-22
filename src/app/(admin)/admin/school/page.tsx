@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -12,51 +12,73 @@ import { PageHeader } from "@/components/admin/page-header";
 import { FormField } from "@/components/admin/form-field";
 import { schoolFormSchema, type SchoolFormValues } from "@/lib/validations/cms";
 
-// Mock data — will be replaced with API call
-const MOCK_SCHOOL: SchoolFormValues = {
-  name: "SMK Negeri 1 Subang",
-  npsn: "20233680",
-  address: "Jl. Arief Rahman Hakim No.35, Dangdeur, Kec. Subang, Kabupaten Subang, Jawa Barat 41211",
-  phone: "(0260) 411537",
-  email: "smkn1subang@gmail.com",
-  accreditation: "A (Unggul)",
-  founded_year: 1963,
-  area_size: "31.780 m²",
-  principal_name: "H. Dadang Johar Arifin, S.Pd., M.M.Pd.",
-  staff_count: 185,
-  student_count: 2847,
-  classroom_count: 72,
-  description: "SMK Negeri 1 Subang adalah sekolah menengah kejuruan unggulan yang berdiri sejak tahun 1963. Sebagai Pusat Keunggulan, sekolah ini terus berinovasi dalam menghasilkan lulusan yang kompeten dan siap kerja.",
-  vision: "Menjadi SMK Pusat Keunggulan yang menghasilkan lulusan berkarakter, kompeten, inovatif, dan berdaya saing global.",
-  mission: "1. Menyelenggarakan pendidikan berbasis kompetensi\n2. Mengembangkan kerjasama industri\n3. Membangun karakter peserta didik\n4. Meningkatkan kualitas SDM pendidik",
-  social_links: {
-    facebook: "https://facebook.com/smkn1subang",
-    instagram: "https://instagram.com/smkn1subang",
-    youtube: "https://youtube.com/@smkn1subang",
-    tiktok: "",
-    website: "https://smkn1subang.sch.id",
-  },
+const EMPTY_SCHOOL: SchoolFormValues = {
+  name: "",
+  npsn: "",
+  address: "",
+  phone: "",
+  email: "",
+  accreditation: "",
+  founded_year: null as unknown as number,
+  area_size: "",
+  principal_name: "",
+  staff_count: null as unknown as number,
+  student_count: null as unknown as number,
+  classroom_count: null as unknown as number,
+  description: "",
+  vision: "",
+  mission: "",
+  social_links: { facebook: "", instagram: "", youtube: "", tiktok: "", website: "" },
 };
 
 export default function SchoolProfilePage() {
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isDirty },
   } = useForm<SchoolFormValues>({
     resolver: zodResolver(schoolFormSchema) as any,
-    defaultValues: MOCK_SCHOOL,
+    defaultValues: EMPTY_SCHOOL,
   });
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { schoolService } = await import("@/lib/api/cms-endpoints");
+        const response = await schoolService.get();
+        const raw = response.data as unknown as Record<string, unknown>;
+        const mapped: Record<string, unknown> = { ...(raw as Record<string, unknown>) };
+        if (typeof raw.social_links === "string") {
+          try {
+            mapped.social_links = JSON.parse(raw.social_links as string);
+          } catch {
+            mapped.social_links = { facebook: "", instagram: "", youtube: "", tiktok: "", website: "" };
+          }
+        } else if (raw.social_links == null) {
+          mapped.social_links = { facebook: "", instagram: "", youtube: "", tiktok: "", website: "" };
+        }
+        if (Array.isArray(mapped.vision)) mapped.vision = (mapped.vision as string[]).join("\n");
+        if (Array.isArray(mapped.mission)) mapped.mission = (mapped.mission as string[]).join("\n");
+        reset(mapped as unknown as SchoolFormValues);
+      } catch {
+        toast.error("Gagal memuat profil sekolah.");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [reset]);
 
   const onSubmit = async (data: SchoolFormValues) => {
     setSaving(true);
     try {
-      // TODO: Replace with schoolService.update(data)
-      await new Promise((r) => setTimeout(r, 1000));
-      console.log("Saving school data:", data);
+      const { schoolService } = await import("@/lib/api/cms-endpoints");
+      await schoolService.update(data as unknown as Record<string, unknown>);
       toast.success("Profil sekolah berhasil disimpan!");
+      reset(data);
     } catch {
       toast.error("Gagal menyimpan data. Silakan coba lagi.");
     } finally {
@@ -81,6 +103,7 @@ export default function SchoolProfilePage() {
         }
       />
 
+      {loading ? <div className="admin-card text-sm text-[var(--admin-muted)]">Memuat…</div> : (
       <form onSubmit={handleSubmit(onSubmit)}>
         <Tabs defaultValue="info" className="space-y-4">
           <TabsList className="bg-[var(--admin-bg-secondary)] border border-[var(--admin-border)]">
@@ -207,7 +230,8 @@ export default function SchoolProfilePage() {
             </div>
           </TabsContent>
         </Tabs>
-      </form>
+      </form>)}
+
     </div>
   );
 }

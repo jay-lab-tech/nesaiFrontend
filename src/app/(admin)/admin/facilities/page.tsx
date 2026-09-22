@@ -27,16 +27,15 @@ import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { facilityFormSchema, type FacilityFormValues } from "@/lib/validations/cms";
 import { FACILITY_CATEGORIES, type Facility } from "@/types/cms";
 
-// Mock data
 const MOCK_FACILITIES: Facility[] = [
-  { id: 1, name: "Laboratorium Komputer RPL", category: "Laboratorium & Bengkel", created_at: "2026-09-01" },
-  { id: 2, name: "Bengkel Otomotif", category: "Laboratorium & Bengkel", created_at: "2026-09-01" },
-  { id: 3, name: "Laboratorium Multimedia", category: "Laboratorium & Bengkel", created_at: "2026-09-01" },
-  { id: 4, name: "Lapangan Basket", category: "Fasilitas Olahraga", created_at: "2026-09-01" },
-  { id: 5, name: "Masjid Al-Hikmah", category: "Sarana Ibadah", created_at: "2026-09-01" },
-  { id: 6, name: "Perpustakaan", category: "Fasilitas Umum", created_at: "2026-09-01" },
-  { id: 7, name: "Aula Serbaguna", category: "Fasilitas Umum", created_at: "2026-09-01" },
-  { id: 8, name: "Bengkel Kelistrikan", category: "Laboratorium & Bengkel", created_at: "2026-09-01" },
+  { id: 1, name: "Laboratorium Komputer RPL", category: "Laboratorium & Bengkel", description: null, is_placeholder: false, created_at: "2026-09-01", updated_at: "2026-09-01" },
+  { id: 2, name: "Bengkel Otomotif", category: "Laboratorium & Bengkel", description: null, is_placeholder: false, created_at: "2026-09-01", updated_at: "2026-09-01" },
+  { id: 3, name: "Laboratorium Multimedia", category: "Laboratorium & Bengkel", description: null, is_placeholder: false, created_at: "2026-09-01", updated_at: "2026-09-01" },
+  { id: 4, name: "Lapangan Basket", category: "Fasilitas Olahraga", description: null, is_placeholder: false, created_at: "2026-09-01", updated_at: "2026-09-01" },
+  { id: 5, name: "Masjid Al-Hikmah", category: "Sarana Ibadah", description: null, is_placeholder: false, created_at: "2026-09-01", updated_at: "2026-09-01" },
+  { id: 6, name: "Perpustakaan", category: "Fasilitas Umum", description: null, is_placeholder: false, created_at: "2026-09-01", updated_at: "2026-09-01" },
+  { id: 7, name: "Aula Serbaguna", category: "Fasilitas Umum", description: null, is_placeholder: false, created_at: "2026-09-01", updated_at: "2026-09-01" },
+  { id: 8, name: "Bengkel Kelistrikan", category: "Laboratorium & Bengkel", description: null, is_placeholder: false, created_at: "2026-09-01", updated_at: "2026-09-01" },
 ];
 
 const CATEGORY_BADGE_MAP: Record<string, string> = {
@@ -108,7 +107,10 @@ export default function FacilitiesPage() {
           id: Date.now(),
           name: values.name,
           category: values.category || null,
+          description: null,
+          is_placeholder: false,
           created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         };
         setData((prev) => [newItem, ...prev]);
         toast.success("Fasilitas berhasil ditambahkan!");

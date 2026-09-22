@@ -156,7 +156,7 @@ export function AdminSidebar({ collapsed, onToggleCollapse }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+      <nav className="admin-sidebar-nav flex-1 overflow-y-auto py-4 px-3 space-y-1">
         {NAV_GROUPS.map((group) => (
           <div key={group.title}>
             {!collapsed && (

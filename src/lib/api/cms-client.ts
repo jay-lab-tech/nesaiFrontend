@@ -89,11 +89,16 @@ async function cmsApiFetch<T>(
 
   // Handle 422 Validation Error
   if (response.status === 422) {
-    const errorData: ApiErrorResponse = await response.json();
+    let errorData: ApiErrorResponse | null = null;
+    try {
+      errorData = await response.json();
+    } catch {
+      throw new ApiError("Data yang diberikan tidak valid.", 422);
+    }
     throw new ApiError(
-      errorData.message || "Data yang diberikan tidak valid.",
+      errorData?.message || "Data yang diberikan tidak valid.",
       422,
-      errorData.errors
+      errorData?.errors
     );
   }
 
@@ -136,6 +141,25 @@ export async function apiGet<T>(
     if (queryString) url += `?${queryString}`;
   }
   return cmsApiFetch<T>(url, { method: "GET" });
+}
+
+/** GET request to public endpoint */
+export async function publicApiGet<T>(
+  endpoint: string,
+  params?: Record<string, string | number | undefined>
+): Promise<T> {
+  let url = endpoint;
+  if (params) {
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== "") {
+        searchParams.append(key, String(value));
+      }
+    });
+    const queryString = searchParams.toString();
+    if (queryString) url += `?${queryString}`;
+  }
+  return cmsApiFetch<T>(url, { method: "GET", isAdmin: false });
 }
 
 /** POST request to admin endpoint */
