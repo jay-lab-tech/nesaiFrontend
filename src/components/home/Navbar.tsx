@@ -4,11 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-<<<<<<< HEAD
-import { Menu, X, Sparkles, GraduationCap, ChevronRight } from 'lucide-react';
-=======
 import { ChevronDown, ArrowUpRight } from 'lucide-react';
->>>>>>> cdbb571e0248b80b2ab31c48bc5c677d91c6e4a9
 
 const NAV_LINKS = [
   { label: 'Profil Sekolah', href: '/profil', menu: [{ label: 'Profil & sejarah', href: '/profil' }, { label: 'Visi & misi', href: '/profil#visi-misi' }, { label: 'Tenaga pendidik', href: '/profil#tenaga-pendidik' }] },
@@ -55,51 +51,11 @@ export function Navbar() {
           <span className={`border-l pl-4 text-sm font-semibold ${isHome ? 'border-white/35 text-white' : 'border-[#cbd7d3] text-[#172b3a]'}`}>ID</span>
         </nav>
 
-<<<<<<< HEAD
-        {/* Action Buttons */}
-        <div className="hidden sm:flex items-center gap-3">
-          <Link
-            href="/tanya-nesai"
-            className="flex items-center gap-2 rounded-full border border-cyan-300/80 bg-gradient-to-r from-cyan-50 to-blue-50 px-3.5 py-1.5 text-xs font-semibold text-cyan-800 hover:border-cyan-400 hover:bg-cyan-100/70 transition-all shadow-sm group"
-          >
-            <Sparkles className="h-3.5 w-3.5 text-cyan-600 group-hover:rotate-12 transition-transform" />
-            <span>Tanya NESAI</span>
-          </Link>
-
-          <Link
-            href="/ppdb"
-            className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-600 px-5 py-2 text-sm font-semibold text-white shadow-md shadow-orange-500/20 hover:from-orange-600 hover:to-amber-700 hover:shadow-lg hover:shadow-orange-500/30 transition-all active:scale-95"
-          >
-            <span>Daftar PPDB</span>
-            <ChevronRight className="h-4 w-4" />
-          </Link>
-        </div>
-
-        {/* Mobile menu button */}
-        <div className="flex lg:hidden items-center gap-2">
-          <Link
-            href="/tanya-nesai"
-            className="sm:hidden flex items-center gap-1.5 rounded-full bg-cyan-50 border border-cyan-300 px-2.5 py-1 text-xs font-medium text-cyan-800"
-          >
-            <Sparkles className="h-3 w-3 text-cyan-600" />
-            <span>NESAI</span>
-          </Link>
-          <button
-            type="button"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="inline-flex items-center justify-center rounded-lg p-2 text-slate-700 hover:bg-slate-100 hover:text-slate-900 focus:outline-none"
-            aria-label="Buka menu navigasi"
-          >
-            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
-        </div>
-=======
         <button type="button" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className={`group flex h-11 w-11 flex-col items-center justify-center gap-[5px] border transition lg:hidden ${isHome ? 'border-white/45 bg-[#08263d]/30 hover:bg-[#08263d]/60' : 'border-[#b9c7c2] bg-white hover:bg-[#edf3f0]'}`} aria-label={mobileMenuOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi'} aria-expanded={mobileMenuOpen}>
           <span className={`h-px w-5 origin-center transition duration-300 ${isHome ? 'bg-white' : 'bg-[#172b3a]'} ${mobileMenuOpen ? 'translate-y-[6px] rotate-45' : ''}`} />
           <span className={`h-px w-5 transition duration-200 ${isHome ? 'bg-white' : 'bg-[#172b3a]'} ${mobileMenuOpen ? 'scale-x-0 opacity-0' : ''}`} />
           <span className={`h-px w-5 origin-center transition duration-300 ${isHome ? 'bg-white' : 'bg-[#172b3a]'} ${mobileMenuOpen ? '-translate-y-[6px] -rotate-45' : ''}`} />
         </button>
->>>>>>> cdbb571e0248b80b2ab31c48bc5c677d91c6e4a9
       </div>
 
       {mobileMenuOpen && (
@@ -110,29 +66,7 @@ export function Navbar() {
             {NAV_LINKS.map((link) => <Link key={link.href} href={link.href} onClick={() => setMobileMenuOpen(false)} className={`flex items-center justify-between border-t py-3.5 text-base font-semibold ${isHome ? 'border-white/15 text-white' : 'border-[#dce5e1] text-[#172b3a]'}`}>{link.label}<ArrowUpRight className="h-4 w-4" /></Link>)}
             <Link href="/ppdb" onClick={() => setMobileMenuOpen(false)} className={`mt-5 flex items-center justify-center gap-2 py-3.5 text-sm font-bold ${isHome ? 'bg-[#f5b51b] text-[#102d43]' : 'bg-[#172b3a] text-white'}`}>Informasi PPDB <ArrowUpRight className="h-4 w-4" /></Link>
           </div>
-<<<<<<< HEAD
-
-          <div className="pt-3 border-t border-slate-100 flex flex-col gap-2.5">
-            <Link
-              href="/tanya-nesai"
-              onClick={() => setMobileMenuOpen(false)}
-              className="w-full flex items-center justify-center gap-2 rounded-xl border border-cyan-300 bg-cyan-50/80 py-2.5 text-sm font-semibold text-cyan-800"
-            >
-              <Sparkles className="h-4 w-4 text-cyan-600" />
-              <span>Konsultasi dengan Asisten NESAI</span>
-            </Link>
-            <Link
-              href="/ppdb"
-              onClick={() => setMobileMenuOpen(false)}
-              className="w-full text-center rounded-xl bg-gradient-to-r from-orange-500 to-amber-600 py-2.5 text-sm font-semibold text-white shadow-md shadow-orange-500/20"
-            >
-              Daftar PPDB 2026/2027
-            </Link>
-          </div>
-        </div>
-=======
         </nav>
->>>>>>> cdbb571e0248b80b2ab31c48bc5c677d91c6e4a9
       )}
     </header>
   );
