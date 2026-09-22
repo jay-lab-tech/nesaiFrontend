@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 const LINKS = [
   { label: 'Profil sekolah', href: '/profil' },
@@ -13,7 +14,10 @@ export function Footer() {
     <footer id="kontak" className="bg-[#172b3a] text-[#edf2ef]">
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 sm:px-8 lg:grid-cols-[1.2fr_0.8fr_1fr] lg:py-16">
         <div>
-          <p className="font-serif text-3xl tracking-[-0.025em]">SMKN 1 Subang</p>
+          <div className="flex items-center gap-4">
+            <Image src="/images/logo-smkn-1-subang.png" alt="Lambang SMK Negeri 1 Subang" width={58} height={58} className="h-[58px] w-[58px] object-contain" />
+            <p className="font-school-heading text-3xl tracking-[-0.025em]">SMKN 1 Subang</p>
+          </div>
           <p className="mt-5 max-w-sm text-sm leading-6 text-[#bac8c4]">Pendidikan vokasi untuk tumbuh sebagai pribadi berkarakter dan terampil di bidangnya.</p>
         </div>
         <div>
