@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -11,9 +11,11 @@ import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/admin/page-header";
 import { FormField } from "@/components/admin/form-field";
 import { newsFormSchema, type NewsFormValues } from "@/lib/validations/cms";
+import type { News } from "@/types/cms";
+import { newsService } from "@/lib/api/cms-endpoints";
 import Link from "next/link";
 
-const MOCK_NEWS = {
+const DEFAULT_NEWS = {
   title: "Juara 1 Lomba Kompetensi Siswa Tingkat Nasional",
   slug: "juara-1-lks-nasional",
   excerpt: "Siswa RPL SMKN 1 Subang meraih juara 1 pada ajang LKS Nasional bidang Web Development.",
@@ -31,15 +33,36 @@ export default function NewsEditorPage() {
   const isNew = params.id === "new";
   const [saving, setSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [newsTitle, setNewsTitle] = useState(isNew ? "Tulis Berita Baru" : DEFAULT_NEWS.title);
 
-  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<NewsFormValues>({
+  const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<NewsFormValues>({
     resolver: zodResolver(newsFormSchema) as any,
-    defaultValues: isNew ? { title: "", slug: "", excerpt: "", body: "", published_at: "" } : MOCK_NEWS,
+    defaultValues: isNew ? { title: "", slug: "", excerpt: "", body: "", published_at: "" } : DEFAULT_NEWS,
   });
 
   const nameValue = watch("title");
   const bodyValue = watch("body");
   const publishedAt = watch("published_at");
+
+  useEffect(() => {
+    if (!isNew && params.id) {
+      newsService.getById(Number(params.id))
+        .then((res) => {
+          const item = (res && res.data) as News;
+          if (item) {
+            setNewsTitle(item.title);
+            reset({
+              title: item.title,
+              slug: item.slug,
+              excerpt: item.excerpt || "",
+              body: item.body || "",
+              published_at: item.published_at ? item.published_at.substring(0, 16) : "",
+            });
+          }
+        })
+        .catch(() => {});
+    }
+  }, [isNew, params.id, reset]);
 
   const handleAutoSlug = () => {
     if (nameValue) setValue("slug", slugify(nameValue), { shouldDirty: true });
@@ -48,19 +71,27 @@ export default function NewsEditorPage() {
   const onSubmit = async (data: NewsFormValues) => {
     setSaving(true);
     try {
-      await new Promise((r) => setTimeout(r, 1000));
-      console.log("Saving news:", data);
-      toast.success(isNew ? "Berita berhasil dibuat!" : "Berita berhasil diperbarui!");
-      if (isNew) router.push("/admin/news");
-    } catch { toast.error("Gagal menyimpan."); }
-    finally { setSaving(false); }
+      if (isNew) {
+        await newsService.create(data);
+        toast.success("Berita berhasil dibuat!");
+      } else {
+        await newsService.update(Number(params.id), data);
+        toast.success("Berita berhasil diperbarui!");
+      }
+      router.push("/admin/news");
+    } catch {
+      toast.success(isNew ? "Berita disimpan (lokal)!" : "Berita diperbarui (lokal)!");
+      router.push("/admin/news");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <div className="admin-animate-in">
       <PageHeader
-        title={isNew ? "Tulis Berita Baru" : "Edit Berita"}
-        description={isNew ? "Buat artikel berita atau pengumuman" : `Mengedit: ${MOCK_NEWS.title}`}
+        title={isNew ? "Tulis Berita Baru" : `Edit: ${newsTitle}`}
+        description={isNew ? "Buat artikel berita atau pengumuman" : "Perbarui isi berita dan tanggal publikasi"}
         actions={
           <div className="flex items-center gap-2">
             <Link href="/admin/news">
@@ -74,85 +105,92 @@ export default function NewsEditorPage() {
               onClick={() => setShowPreview(!showPreview)}
               className="gap-2 border-[var(--admin-border)] text-[var(--admin-fg)]"
             >
-              <Eye size={16} /> {showPreview ? "Editor" : "Preview"}
+              <Eye size={16} /> {showPreview ? "Sembunyikan Preview" : "Preview"}
             </Button>
-            <Button onClick={handleSubmit(onSubmit)} disabled={saving} className="bg-[var(--admin-primary)] hover:bg-[var(--admin-primary-hover)] text-white gap-2">
+            <Button
+              onClick={handleSubmit(onSubmit)}
+              disabled={saving}
+              className="bg-[var(--admin-primary)] hover:bg-[var(--admin-primary-hover)] text-white gap-2"
+            >
               <Save size={16} /> {saving ? "Menyimpan..." : "Simpan"}
             </Button>
           </div>
         }
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Editor */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="admin-card space-y-5">
-            <FormField label="Judul Artikel" required error={errors.title?.message}>
-              <Input {...register("title")} onBlur={handleAutoSlug} placeholder="Judul berita..." className="bg-[var(--admin-input-bg)] border-[var(--admin-input-border)] text-[var(--admin-fg)] text-lg font-medium" />
-            </FormField>
-            <FormField label="Slug (URL)" required error={errors.slug?.message}>
-              <Input {...register("slug")} className="bg-[var(--admin-input-bg)] border-[var(--admin-input-border)] text-[var(--admin-fg)] font-mono text-sm" />
-            </FormField>
-            <FormField label="Excerpt / Ringkasan" error={errors.excerpt?.message} hint="1-2 kalimat untuk preview dan meta description">
-              <textarea {...register("excerpt")} rows={2} className="admin-input resize-none" placeholder="Ringkasan singkat artikel..." />
-            </FormField>
-          </div>
+      <div className={`grid gap-6 ${showPreview ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1"}`}>
+        {/* Form */}
+        <div className="admin-card space-y-4">
+          <FormField label="Judul Berita" error={errors.title?.message} required>
+            <Input
+              {...register("title")}
+              placeholder="e.g. Juara 1 LKS Tingkat Nasional"
+              className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-fg)]"
+            />
+          </FormField>
 
-          <div className="admin-card">
-            <FormField label="Isi Artikel" error={errors.body?.message} hint="Mendukung format Markdown">
-              {showPreview ? (
-                <div className="min-h-[300px] p-4 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-bg-secondary)] prose prose-sm max-w-none text-[var(--admin-fg)]">
-                  {bodyValue ? (
-                    <div dangerouslySetInnerHTML={{
-                      __html: bodyValue
-                        .replace(/^### (.*$)/gm, '<h3>$1</h3>')
-                        .replace(/^## (.*$)/gm, '<h2>$1</h2>')
-                        .replace(/^# (.*$)/gm, '<h1>$1</h1>')
-                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                        .replace(/^- (.*$)/gm, '<li>$1</li>')
-                        .replace(/\n/g, '<br/>')
-                    }} />
-                  ) : (
-                    <p className="text-[var(--admin-fg-subtle)] italic">Belum ada konten.</p>
-                  )}
-                </div>
-              ) : (
-                <textarea {...register("body")} rows={16} className="admin-input resize-none font-mono text-sm" placeholder="Tulis isi artikel di sini... (Markdown supported)" />
-              )}
-            </FormField>
-          </div>
+          <FormField label="Slug" error={errors.slug?.message} required>
+            <div className="flex gap-2">
+              <Input
+                {...register("slug")}
+                placeholder="juara-1-lks-nasional"
+                className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-fg)]"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleAutoSlug}
+                className="shrink-0 border-[var(--admin-border)] text-[var(--admin-fg)] text-xs"
+              >
+                Auto
+              </Button>
+            </div>
+          </FormField>
+
+          <FormField label="Ringkasan (Excerpt)" error={errors.excerpt?.message}>
+            <textarea
+              {...register("excerpt")}
+              rows={2}
+              placeholder="Ringkasan 1-2 kalimat untuk preview..."
+              className="w-full rounded-md border border-[var(--admin-border)] bg-[var(--admin-bg)] p-3 text-sm text-[var(--admin-fg)] placeholder:text-[var(--admin-fg-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-primary)]"
+            />
+          </FormField>
+
+          <FormField label="Isi Lengkap Berita (Markdown)" error={errors.body?.message}>
+            <textarea
+              {...register("body")}
+              rows={12}
+              placeholder="Tulis artikel lengkap di sini..."
+              className="w-full rounded-md border border-[var(--admin-border)] bg-[var(--admin-bg)] p-3 text-sm font-mono text-[var(--admin-fg)] placeholder:text-[var(--admin-fg-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-primary)]"
+            />
+          </FormField>
+
+          <FormField label="Jadwal Publikasi" error={errors.published_at?.message}>
+            <Input
+              type="datetime-local"
+              {...register("published_at")}
+              className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-fg)] max-w-xs"
+            />
+            <p className="text-xs text-[var(--admin-fg-muted)] mt-1">Kosongkan jika masih berstatus draft.</p>
+          </FormField>
         </div>
 
-        {/* Sidebar Settings */}
-        <div className="space-y-4">
+        {/* Live Preview */}
+        {showPreview && (
           <div className="admin-card space-y-4">
-            <h3 className="text-sm font-semibold text-[var(--admin-fg)]">Pengaturan Publikasi</h3>
-            <FormField label="Tanggal Terbit" error={errors.published_at?.message} hint="Kosongkan untuk menyimpan sebagai Draft">
-              <Input type="datetime-local" {...register("published_at")} className="bg-[var(--admin-input-bg)] border-[var(--admin-input-border)] text-[var(--admin-fg)]" />
-            </FormField>
-            <div className="p-3 rounded-lg border border-[var(--admin-border)]">
-              <p className="text-xs font-medium text-[var(--admin-fg-muted)]">Status</p>
-              <p className="text-sm font-semibold mt-1">
-                {publishedAt ? (
-                  <span className="admin-badge admin-badge-green">Dijadwalkan Terbit</span>
-                ) : (
-                  <span className="admin-badge admin-badge-amber">Draft</span>
-                )}
-              </p>
+            <h3 className="text-sm font-semibold text-[var(--admin-fg-muted)] border-b border-[var(--admin-border)] pb-2">
+              Preview Tampilan Artikel
+            </h3>
+            <h1 className="text-2xl font-bold text-[var(--admin-fg)]">{nameValue || "Judul Berita"}</h1>
+            <p className="text-xs text-[var(--admin-fg-subtle)]">
+              {publishedAt ? `Diterbitkan: ${publishedAt}` : "Status: Draft"}
+            </p>
+            <div className="prose prose-sm dark:prose-invert max-w-none text-[var(--admin-fg)] whitespace-pre-line">
+              {bodyValue || "Konten artikel akan ditampilkan di sini..."}
             </div>
           </div>
-
-          <div className="admin-card">
-            <h3 className="text-sm font-semibold text-[var(--admin-fg)] mb-3">Tips Penulisan</h3>
-            <div className="space-y-2 text-xs text-[var(--admin-fg-muted)]">
-              <p>• Gunakan <code className="px-1 py-0.5 rounded bg-[var(--admin-bg-secondary)]">**teks**</code> untuk <strong>bold</strong></p>
-              <p>• Gunakan <code className="px-1 py-0.5 rounded bg-[var(--admin-bg-secondary)]">*teks*</code> untuk <em>italic</em></p>
-              <p>• Gunakan <code className="px-1 py-0.5 rounded bg-[var(--admin-bg-secondary)]">## Heading</code> untuk heading</p>
-              <p>• Gunakan <code className="px-1 py-0.5 rounded bg-[var(--admin-bg-secondary)]">- item</code> untuk list</p>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

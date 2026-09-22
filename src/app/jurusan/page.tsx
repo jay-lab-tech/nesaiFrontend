@@ -1,3 +1,6 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { 
   Network, 
@@ -16,9 +19,12 @@ import {
 } from 'lucide-react';
 import { openNesaiChat } from '@/lib/nesai-events';
 import { NesaiPromoBar } from '@/components/home/NesaiPromoBar';
+import { publicService, unwrapList } from '@/lib/api/public-endpoints';
+import type { Major } from '@/types/cms';
 
 interface MajorDetail {
   id: string;
+  slug: string;
   code: string;
   name: string;
   badge: string;
@@ -31,9 +37,10 @@ interface MajorDetail {
   promptQuestion: string;
 }
 
-const MAJORS_DATA: MajorDetail[] = [
+const DEFAULT_MAJORS_DATA: MajorDetail[] = [
   {
     id: 'tkj',
+    slug: 'tkj',
     code: 'TKJ',
     name: 'Teknik Komputer & Jaringan',
     badge: 'Infrastruktur & Cloud',
@@ -47,6 +54,7 @@ const MAJORS_DATA: MajorDetail[] = [
   },
   {
     id: 'rpl',
+    slug: 'rpl',
     code: 'RPL',
     name: 'Rekayasa Perangkat Lunak',
     badge: 'Software & AI Development',
@@ -60,6 +68,7 @@ const MAJORS_DATA: MajorDetail[] = [
   },
   {
     id: 'dkv',
+    slug: 'dkv',
     code: 'DKV',
     name: 'Multimedia & Desain Komunikasi Visual',
     badge: 'Industri Kreatif Digital',
@@ -73,6 +82,7 @@ const MAJORS_DATA: MajorDetail[] = [
   },
   {
     id: 'toi',
+    slug: 'toi',
     code: 'TOI',
     name: 'Teknik Otomasi Industri',
     badge: 'Mekatronika & Robotik',
@@ -86,6 +96,7 @@ const MAJORS_DATA: MajorDetail[] = [
   },
   {
     id: 'bdp',
+    slug: 'bdp',
     code: 'BDP',
     name: 'Bisnis Digital & Pemasaran',
     badge: 'Digital Commerce & Marketing',
@@ -99,6 +110,7 @@ const MAJORS_DATA: MajorDetail[] = [
   },
   {
     id: 'akl',
+    slug: 'akl',
     code: 'AKL',
     name: 'Akuntansi & Keuangan Lembaga',
     badge: 'Keuangan & Perbankan',
@@ -112,7 +124,64 @@ const MAJORS_DATA: MajorDetail[] = [
   },
 ];
 
+const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  tkj: Network,
+  rpl: Code2,
+  dkv: Palette,
+  toi: Cpu,
+  bdp: TrendingUp,
+  akl: Calculator,
+};
+
+const COLOR_MAP: Record<string, string> = {
+  tkj: 'from-blue-600 to-cyan-600',
+  rpl: 'from-indigo-600 to-blue-600',
+  dkv: 'from-purple-600 to-pink-600',
+  toi: 'from-teal-600 to-emerald-600',
+  bdp: 'from-amber-600 to-orange-600',
+  akl: 'from-sky-600 to-blue-700',
+};
+
 export default function JurusanPage() {
+  const [majorsList, setMajorsList] = useState<MajorDetail[]>(DEFAULT_MAJORS_DATA);
+
+  useEffect(() => {
+    publicService.getMajors()
+      .then((res) => {
+        const apiMajors = unwrapList<Major>(res);
+        if (apiMajors.length > 0) {
+          // Map API majors to UI structure
+          const mapped: MajorDetail[] = apiMajors.map((m) => {
+            const slugKey = m.slug.toLowerCase();
+            const fallbackItem = DEFAULT_MAJORS_DATA.find(
+              (d) => d.slug === slugKey || d.id === slugKey || m.name.toLowerCase().includes(d.id)
+            );
+
+            return {
+              id: m.slug,
+              slug: m.slug,
+              code: fallbackItem?.code || m.name.substring(0, 4).toUpperCase(),
+              name: m.name,
+              badge: fallbackItem?.badge || 'Program Keahlian Vokasi',
+              icon: fallbackItem?.icon || ICON_MAP[slugKey] || Network,
+              color: fallbackItem?.color || COLOR_MAP[slugKey] || 'from-slate-700 to-slate-900',
+              summary: m.summary || m.description || fallbackItem?.summary || '',
+              skills: m.subjects && m.subjects.length > 0
+                ? m.subjects.map((s) => s.name)
+                : fallbackItem?.skills || ['Kurikulum Berbasis Industri', 'Praktek Kerja Lapangan'],
+              certifications: fallbackItem?.certifications || ['Sertifikasi Kompetensi BNSP', 'Uji Kompetensi Keahlian (UKK)'],
+              careers: m.careers && m.careers.length > 0
+                ? m.careers.map((c) => c.name)
+                : fallbackItem?.careers || ['Tenaga Terampil Industri', 'Wirausaha Mandiri'],
+              promptQuestion: fallbackItem?.promptQuestion || `Jelaskan kurikulum dan peluang karir di jurusan ${m.name} SMKN 1 Subang.`,
+            };
+          });
+          setMajorsList(mapped);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <div className="bg-slate-50 min-h-screen">
       {/* Header Banner */}
@@ -132,13 +201,13 @@ export default function JurusanPage() {
 
           <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-500/20 border border-blue-400/30 px-3.5 py-1 text-xs font-semibold text-cyan-300 mb-4">
             <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
-            6 Konsentrasi Keahlian Unggulan
+            {majorsList.length} Konsentrasi Keahlian Unggulan
           </span>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white mb-4">
             Pilihan Program Keahlian Masa Depan
           </h1>
           <p className="text-base sm:text-lg text-slate-300 max-w-3xl leading-relaxed">
-            Kurikulum berbasis industri yang dirancang dengan skema *Link & Match*, diperkuat sertifikasi kompetensi nasional BNSP dan mitra industri multinasional.
+            Kurikulum berbasis industri yang dirancang dengan skema <em>Link & Match</em>, diperkuat sertifikasi kompetensi nasional BNSP dan mitra industri multinasional.
           </p>
         </div>
       </section>
@@ -146,7 +215,7 @@ export default function JurusanPage() {
       {/* Majors Deep Dive */}
       <section className="py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12">
-          {MAJORS_DATA.map((major) => {
+          {majorsList.map((major) => {
             const Icon = major.icon;
             return (
               <div
@@ -169,19 +238,30 @@ export default function JurusanPage() {
                         </span>
                       </div>
                       <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-                        {major.name}
+                        <Link href={`/jurusan/${major.slug}`} className="hover:text-blue-600 transition-colors">
+                          {major.name}
+                        </Link>
                       </h2>
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => openNesaiChat(major.promptQuestion)}
-                    className="inline-flex items-center gap-2 self-start rounded-xl border border-cyan-300 bg-cyan-50/80 px-4 py-2.5 text-xs font-bold text-cyan-800 hover:bg-cyan-100 hover:border-cyan-400 transition-all shadow-2xs"
-                  >
-                    <Bot className="h-4 w-4 text-cyan-600" />
-                    <span>Tanya Detail ke NESAI</span>
-                  </button>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Link
+                      href={`/jurusan/${major.slug}`}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-100 hover:border-slate-300 transition-all"
+                    >
+                      <span>Lihat Halaman Jurusan</span>
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => openNesaiChat(major.promptQuestion)}
+                      className="inline-flex items-center gap-2 self-start rounded-xl border border-cyan-300 bg-cyan-50/80 px-4 py-2.5 text-xs font-bold text-cyan-800 hover:bg-cyan-100 hover:border-cyan-400 transition-all shadow-2xs"
+                    >
+                      <Bot className="h-4 w-4 text-cyan-600" />
+                      <span>Tanya ke NESAI</span>
+                    </button>
+                  </div>
                 </div>
 
                 <p className="text-slate-600 text-base leading-relaxed mb-8">

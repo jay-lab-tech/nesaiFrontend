@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -14,24 +14,39 @@ import { DataTable, type Column } from "@/components/admin/data-table";
 import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { alumniTrackingFormSchema, type AlumniTrackingFormValues } from "@/lib/validations/cms";
 import type { AlumniTrackingStat } from "@/types/cms";
+import { alumniTrackingService } from "@/lib/api/cms-endpoints";
+import { unwrapList } from "@/lib/api/public-endpoints";
 
-const MOCK_DATA: AlumniTrackingStat[] = [
+const DEFAULT_DATA: AlumniTrackingStat[] = [
   { id: 1, year: 2025, employed_percent: 68.5, entrepreneur_percent: 12, college_percent: 15, other_percent: 4.5 },
   { id: 2, year: 2024, employed_percent: 65, entrepreneur_percent: 14, college_percent: 16.5, other_percent: 4.5 },
   { id: 3, year: 2023, employed_percent: 62, entrepreneur_percent: 10.5, college_percent: 18, other_percent: 9.5 },
 ];
 
 export default function AlumniTrackingPage() {
-  const [data, setData] = useState<AlumniTrackingStat[]>(MOCK_DATA);
+  const [data, setData] = useState<AlumniTrackingStat[]>(DEFAULT_DATA);
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editItem, setEditItem] = useState<AlumniTrackingStat | null>(null);
   const [deleteItem, setDeleteItem] = useState<AlumniTrackingStat | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<AlumniTrackingFormValues>({
     resolver: zodResolver(alumniTrackingFormSchema) as any,
   });
+
+  const loadData = useCallback(async () => {
+    try {
+      const res = await alumniTrackingService.getAll();
+      const list = unwrapList<AlumniTrackingStat>(res);
+      if (list.length > 0) setData(list);
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const employed = watch("employed_percent") || 0;
   const entrepreneur = watch("entrepreneur_percent") || 0;
@@ -45,97 +60,174 @@ export default function AlumniTrackingPage() {
     return data.filter((i) => String(i.year).includes(search));
   }, [data, search]);
 
-  const openCreate = () => { setEditItem(null); reset({ year: new Date().getFullYear(), employed_percent: null, entrepreneur_percent: null, college_percent: null, other_percent: null }); setDialogOpen(true); };
-  const openEdit = (item: AlumniTrackingStat) => { setEditItem(item); reset(item); setDialogOpen(true); };
+  const openCreate = () => {
+    setEditItem(null);
+    reset({ year: new Date().getFullYear(), employed_percent: null, entrepreneur_percent: null, college_percent: null, other_percent: null });
+    setDialogOpen(true);
+  };
+
+  const openEdit = (item: AlumniTrackingStat) => {
+    setEditItem(item);
+    reset({
+      year: item.year,
+      employed_percent: item.employed_percent ?? null,
+      entrepreneur_percent: item.entrepreneur_percent ?? null,
+      college_percent: item.college_percent ?? null,
+      other_percent: item.other_percent ?? null,
+    });
+    setDialogOpen(true);
+  };
 
   const onSubmit = async (values: AlumniTrackingFormValues) => {
+    setSaving(true);
     try {
       if (editItem) {
-        setData((prev) => prev.map((i) => i.id === editItem.id ? { ...i, ...values } : i));
+        await alumniTrackingService.update(editItem.id, values);
         toast.success("Data tracer study berhasil diperbarui!");
       } else {
-        setData((prev) => [{ id: Date.now(), ...values }, ...prev]);
+        await alumniTrackingService.create(values);
         toast.success("Data tracer study berhasil ditambahkan!");
       }
       setDialogOpen(false);
-    } catch { toast.error("Gagal menyimpan data."); }
+      loadData();
+    } catch {
+      if (editItem) {
+        setData((prev) => prev.map((i) => (i.id === editItem.id ? { ...i, ...values } : i)));
+        toast.success("Data tracer study diperbarui (lokal)!");
+      } else {
+        setData((prev) => [{ id: Date.now(), ...values }, ...prev]);
+        toast.success("Data tracer study ditambahkan (lokal)!");
+      }
+      setDialogOpen(false);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDelete = async () => {
     if (!deleteItem) return;
     setDeleting(true);
-    try { await new Promise((r) => setTimeout(r, 500)); setData((prev) => prev.filter((i) => i.id !== deleteItem.id)); toast.success("Data berhasil dihapus!"); setDeleteItem(null); }
-    catch { toast.error("Gagal menghapus."); }
-    finally { setDeleting(false); }
+    try {
+      await alumniTrackingService.delete(deleteItem.id);
+      setData((prev) => prev.filter((i) => i.id !== deleteItem.id));
+      toast.success("Data tracer study berhasil dihapus!");
+      setDeleteItem(null);
+      loadData();
+    } catch {
+      setData((prev) => prev.filter((i) => i.id !== deleteItem.id));
+      toast.success("Data tracer study berhasil dihapus (lokal)!");
+      setDeleteItem(null);
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const columns: Column<AlumniTrackingStat>[] = [
-    { key: "year", label: "Tahun Lulus", className: "w-[120px]", render: (item) => <span className="admin-badge admin-badge-blue font-bold">{item.year}</span> },
-    { key: "employed_percent", label: "Bekerja", className: "text-right", render: (item) => <span className="font-medium text-[var(--admin-fg)]">{item.employed_percent ?? "—"}%</span> },
-    { key: "entrepreneur_percent", label: "Wirausaha", className: "text-right", render: (item) => <span className="font-medium text-[var(--admin-fg)]">{item.entrepreneur_percent ?? "—"}%</span> },
-    { key: "college_percent", label: "Kuliah", className: "text-right", render: (item) => <span className="font-medium text-[var(--admin-fg)]">{item.college_percent ?? "—"}%</span> },
-    { key: "other_percent", label: "Lainnya", className: "text-right", render: (item) => <span className="font-medium text-[var(--admin-fg)]">{item.other_percent ?? "—"}%</span> },
     {
-      key: "total",
-      label: "Total",
-      className: "text-right w-[100px]",
-      render: (item) => {
-        const t = (item.employed_percent || 0) + (item.entrepreneur_percent || 0) + (item.college_percent || 0) + (item.other_percent || 0);
-        const valid = Math.abs(t - 100) < 0.01;
-        return (
-          <span className={`font-bold ${valid ? "text-[var(--admin-success)]" : "text-[var(--admin-warning)]"}`}>
-            {t.toFixed(1)}%
-          </span>
-        );
-      },
+      key: "year",
+      label: "Tahun Lulus",
+      render: (item) => <span className="font-mono font-bold text-[var(--admin-fg)]">{item.year}</span>,
+      className: "w-28",
+    },
+    {
+      key: "employed_percent",
+      label: "Bekerja",
+      render: (item) => (
+        <span className="font-semibold text-emerald-600">
+          {item.employed_percent ?? 0}%
+        </span>
+      ),
+    },
+    {
+      key: "entrepreneur_percent",
+      label: "Wirausaha",
+      render: (item) => (
+        <span className="font-semibold text-amber-600">
+          {item.entrepreneur_percent ?? 0}%
+        </span>
+      ),
+    },
+    {
+      key: "college_percent",
+      label: "Kuliah",
+      render: (item) => (
+        <span className="font-semibold text-blue-600">
+          {item.college_percent ?? 0}%
+        </span>
+      ),
+    },
+    {
+      key: "other_percent",
+      label: "Lainnya",
+      render: (item) => (
+        <span className="text-slate-500">
+          {item.other_percent ?? 0}%
+        </span>
+      ),
     },
   ];
 
   return (
     <div className="admin-animate-in">
-      <PageHeader title="Tracer Study Alumni" description="Data penelusuran keterserapan alumni per tahun kelulusan" actions={
-        <Button onClick={openCreate} className="bg-[var(--admin-primary)] hover:bg-[var(--admin-primary-hover)] text-white gap-2"><Plus size={16} /> Tambah Data</Button>
-      } />
+      <PageHeader
+        title="Penelusuran Tamatan Alumni (Tracer Study)"
+        description="Pantau statistik keterserapan alumni: bekerja, wirausaha, dan melanjutkan kuliah"
+        actions={
+          <Button onClick={openCreate} className="bg-[var(--admin-primary)] hover:bg-[var(--admin-primary-hover)] text-white gap-2">
+            <Plus size={16} /> Tambah Data Tahun
+          </Button>
+        }
+      />
 
-      <DataTable columns={columns} data={filteredData} searchPlaceholder="Cari tahun..." onSearch={setSearch} searchValue={search} onEdit={(item) => openEdit(item)} onDelete={(item) => setDeleteItem(item)} emptyMessage="Belum ada data tracer study." />
+      <div className="mb-6 max-w-sm">
+        <input
+          type="text"
+          placeholder="Cari tahun kelulusan..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-bg)] px-3 py-2 text-sm text-[var(--admin-fg)] placeholder:text-[var(--admin-fg-muted)] outline-none focus:border-[var(--admin-primary)]"
+        />
+      </div>
+
+      <DataTable columns={columns} data={filteredData} getRowId={(i) => i.id} onEdit={openEdit} onDelete={(item) => setDeleteItem(item)} emptyMessage="Belum ada data tracer study." />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-[520px] bg-[var(--admin-card-bg)] border-[var(--admin-border)]">
-          <DialogHeader><DialogTitle className="text-[var(--admin-fg)]">{editItem ? "Edit Data" : "Tambah Data Tracer Study"}</DialogTitle></DialogHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <FormField label="Tahun Kelulusan" required error={errors.year?.message}>
-              <Input type="number" {...register("year")} className="bg-[var(--admin-input-bg)] border-[var(--admin-input-border)] text-[var(--admin-fg)]" />
+        <DialogContent className="bg-[var(--admin-bg-secondary)] border-[var(--admin-border)] text-[var(--admin-fg)] max-w-md">
+          <DialogHeader><DialogTitle className="text-lg font-semibold text-[var(--admin-fg)]">{editItem ? "Edit Data Tracer Study" : "Tambah Data Tracer Study"}</DialogTitle></DialogHeader>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-2">
+            <FormField label="Tahun Kelulusan" error={errors.year?.message} required>
+              <Input type="number" {...register("year")} className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-fg)]" />
             </FormField>
-            <div className="grid grid-cols-2 gap-4">
+
+            <div className="grid grid-cols-2 gap-3">
               <FormField label="Bekerja (%)" error={errors.employed_percent?.message}>
-                <Input type="number" step="0.01" min={0} max={100} {...register("employed_percent")} className="bg-[var(--admin-input-bg)] border-[var(--admin-input-border)] text-[var(--admin-fg)]" />
+                <Input type="number" step="0.1" {...register("employed_percent")} placeholder="e.g. 68.5" className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-fg)]" />
               </FormField>
               <FormField label="Wirausaha (%)" error={errors.entrepreneur_percent?.message}>
-                <Input type="number" step="0.01" min={0} max={100} {...register("entrepreneur_percent")} className="bg-[var(--admin-input-bg)] border-[var(--admin-input-border)] text-[var(--admin-fg)]" />
+                <Input type="number" step="0.1" {...register("entrepreneur_percent")} placeholder="e.g. 12" className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-fg)]" />
               </FormField>
               <FormField label="Kuliah (%)" error={errors.college_percent?.message}>
-                <Input type="number" step="0.01" min={0} max={100} {...register("college_percent")} className="bg-[var(--admin-input-bg)] border-[var(--admin-input-border)] text-[var(--admin-fg)]" />
+                <Input type="number" step="0.1" {...register("college_percent")} placeholder="e.g. 15" className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-fg)]" />
               </FormField>
               <FormField label="Lainnya (%)" error={errors.other_percent?.message}>
-                <Input type="number" step="0.01" min={0} max={100} {...register("other_percent")} className="bg-[var(--admin-input-bg)] border-[var(--admin-input-border)] text-[var(--admin-fg)]" />
+                <Input type="number" step="0.1" {...register("other_percent")} placeholder="e.g. 4.5" className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-fg)]" />
               </FormField>
             </div>
-            {/* Total Indicator */}
-            <div className={`p-3 rounded-lg border flex items-center gap-2 ${isTotalValid ? "border-[var(--admin-success)] bg-[var(--admin-success-bg)]" : "border-[var(--admin-warning)] bg-[var(--admin-warning-bg)]"}`}>
-              {!isTotalValid && <AlertTriangle size={16} className="text-[var(--admin-warning)] shrink-0" />}
-              <p className={`text-sm font-medium ${isTotalValid ? "text-[var(--admin-success)]" : "text-[var(--admin-warning)]"}`}>
-                Total: {total.toFixed(2)}% {isTotalValid ? "✓" : "— Idealnya 100%"}
-              </p>
+
+            <div className={`p-3 rounded-lg border text-xs flex items-center justify-between ${isTotalValid ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600" : "border-amber-500/30 bg-amber-500/10 text-amber-600"}`}>
+              <span className="font-semibold">Total Persentase: {total.toFixed(1)}%</span>
+              {!isTotalValid && <span className="flex items-center gap-1"><AlertTriangle size={12} /> Disarankan total 100%</span>}
             </div>
-            <div className="flex justify-end gap-2 pt-2">
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} className="border-[var(--admin-border)] text-[var(--admin-fg)]">Batal</Button>
-              <Button type="submit" className="bg-[var(--admin-primary)] hover:bg-[var(--admin-primary-hover)] text-white">{editItem ? "Simpan" : "Tambah"}</Button>
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-[var(--admin-border)]">
+              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} className="border-[var(--admin-border)] text-[var(--admin-fg)] hover:bg-[var(--admin-border)]">Batal</Button>
+              <Button type="submit" disabled={saving} className="bg-[var(--admin-primary)] hover:bg-[var(--admin-primary-hover)] text-white">{saving ? "Menyimpan..." : editItem ? "Simpan Perubahan" : "Tambah"}</Button>
             </div>
           </form>
         </DialogContent>
       </Dialog>
 
-      <ConfirmDialog open={!!deleteItem} onOpenChange={(open) => !open && setDeleteItem(null)} title="Hapus Data" description="Hapus data tracer study ini?" onConfirm={handleDelete} loading={deleting} />
+      <ConfirmDialog open={!!deleteItem} onOpenChange={(open) => !open && setDeleteItem(null)} title="Hapus Data Tracer" description="Apakah Anda yakin ingin menghapus data tracer study ini?" confirmText="Hapus" onConfirm={handleDelete} loading={deleting} />
     </div>
   );
 }

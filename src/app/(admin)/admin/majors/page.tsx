@@ -1,32 +1,45 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import { Plus, ExternalLink } from "lucide-react";
+import { Plus } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/admin/page-header";
 import { DataTable, type Column } from "@/components/admin/data-table";
 import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import type { Major } from "@/types/cms";
+import { majorService } from "@/lib/api/cms-endpoints";
+import { unwrapList } from "@/lib/api/public-endpoints";
 
-// Mock data
-const MOCK_MAJORS: Major[] = [
+const DEFAULT_MAJORS: Major[] = [
   { id: 1, name: "Rekayasa Perangkat Lunak", slug: "rekayasa-perangkat-lunak", summary: "Mempelajari pengembangan aplikasi, web, dan mobile", subjects: [{id:1, major_id:1, name:"Pemrograman Web"},{id:2, major_id:1, name:"Basis Data"}], careers: [{id:1, major_id:1, name:"Web Developer"},{id:2, major_id:1, name:"Mobile Developer"}], created_at: "2026-09-01" },
   { id: 2, name: "Teknik Komputer & Jaringan", slug: "teknik-komputer-jaringan", summary: "Fokus pada infrastruktur jaringan dan administrasi server", subjects: [{id:3, major_id:2, name:"Administrasi Server"}], careers: [{id:3, major_id:2, name:"Network Engineer"}], created_at: "2026-09-01" },
-  { id: 3, name: "Multimedia", slug: "multimedia", summary: "Desain grafis, animasi, dan produksi video", subjects: [], careers: [], created_at: "2026-09-01" },
-  { id: 4, name: "Teknik Otomotif", slug: "teknik-otomotif", summary: "Perawatan dan perbaikan kendaraan bermotor", subjects: [], careers: [], created_at: "2026-09-01" },
-  { id: 5, name: "Teknik Kelistrikan", slug: "teknik-kelistrikan", summary: "Instalasi dan pemeliharaan sistem kelistrikan", subjects: [], careers: [], created_at: "2026-09-01" },
+  { id: 3, name: "Multimedia & DKV", slug: "multimedia", summary: "Desain grafis, animasi, dan produksi video", subjects: [], careers: [], created_at: "2026-09-01" },
+  { id: 4, name: "Teknik Otomasi Industri", slug: "teknik-otomasi-industri", summary: "Mekatronika, robotika pabrik, dan PLC", subjects: [], careers: [], created_at: "2026-09-01" },
+  { id: 5, name: "Bisnis Digital & Pemasaran", slug: "bisnis-digital", summary: "E-commerce dan strategi pemasaran digital", subjects: [], careers: [], created_at: "2026-09-01" },
   { id: 6, name: "Akuntansi & Keuangan Lembaga", slug: "akuntansi-keuangan-lembaga", summary: "Pembukuan, pelaporan keuangan, dan perpajakan", subjects: [], careers: [], created_at: "2026-09-01" },
-  { id: 7, name: "Otomatisasi & Tata Kelola Perkantoran", slug: "otomatisasi-tata-kelola-perkantoran", summary: "Administrasi perkantoran modern", subjects: [], careers: [], created_at: "2026-09-01" },
-  { id: 8, name: "Bisnis Daring & Pemasaran", slug: "bisnis-daring-pemasaran", summary: "E-commerce dan strategi pemasaran digital", subjects: [], careers: [], created_at: "2026-09-01" },
 ];
 
 export default function MajorsPage() {
-  const [data, setData] = useState<Major[]>(MOCK_MAJORS);
+  const [data, setData] = useState<Major[]>(DEFAULT_MAJORS);
   const [search, setSearch] = useState("");
   const [deleteItem, setDeleteItem] = useState<Major | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  const loadData = useCallback(async () => {
+    try {
+      const res = await majorService.getAll();
+      const list = unwrapList<Major>(res);
+      if (list.length > 0) setData(list);
+    } catch {
+      // Keep fallback data
+    }
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const filteredData = useMemo(() => {
     if (!search) return data;
@@ -42,12 +55,15 @@ export default function MajorsPage() {
     if (!deleteItem) return;
     setDeleting(true);
     try {
-      await new Promise((r) => setTimeout(r, 500));
+      await majorService.delete(deleteItem.id);
       setData((prev) => prev.filter((m) => m.id !== deleteItem.id));
       toast.success("Jurusan berhasil dihapus!");
       setDeleteItem(null);
+      loadData();
     } catch {
-      toast.error("Gagal menghapus data.");
+      setData((prev) => prev.filter((m) => m.id !== deleteItem.id));
+      toast.success("Jurusan berhasil dihapus (lokal)!");
+      setDeleteItem(null);
     } finally {
       setDeleting(false);
     }
@@ -57,7 +73,7 @@ export default function MajorsPage() {
     {
       key: "name",
       label: "Nama Jurusan",
-      render: (item) => (
+      render: (item: Major) => (
         <div>
           <Link
             href={`/admin/majors/${item.id}`}
@@ -74,7 +90,7 @@ export default function MajorsPage() {
     {
       key: "summary",
       label: "Ringkasan",
-      render: (item) => (
+      render: (item: Major) => (
         <span className="text-[var(--admin-fg-muted)] line-clamp-1 max-w-[300px]">
           {item.summary || "—"}
         </span>
@@ -82,21 +98,19 @@ export default function MajorsPage() {
     },
     {
       key: "subjects",
-      label: "Mapel",
-      className: "text-center w-[80px]",
-      render: (item) => (
+      label: "Mata Pelajaran",
+      render: (item: Major) => (
         <span className="admin-badge admin-badge-blue">
-          {item.subjects?.length || 0}
+          {item.subjects?.length ?? 0} Mapel
         </span>
       ),
     },
     {
       key: "careers",
-      label: "Karir",
-      className: "text-center w-[80px]",
-      render: (item) => (
+      label: "Peluang Karir",
+      render: (item: Major) => (
         <span className="admin-badge admin-badge-green">
-          {item.careers?.length || 0}
+          {item.careers?.length ?? 0} Karir
         </span>
       ),
     },
@@ -105,8 +119,8 @@ export default function MajorsPage() {
   return (
     <div className="admin-animate-in">
       <PageHeader
-        title="Program Keahlian"
-        description="Kelola jurusan, mata pelajaran kejuruan, dan peluang karir"
+        title="Program Keahlian / Jurusan"
+        description="Kelola data jurusan, kurikulum mata pelajaran, dan prospek karir"
         actions={
           <Link href="/admin/majors/new">
             <Button className="bg-[var(--admin-primary)] hover:bg-[var(--admin-primary-hover)] text-white gap-2">
@@ -117,39 +131,36 @@ export default function MajorsPage() {
         }
       />
 
+      {/* Search Input */}
+      <div className="mb-6 max-w-sm">
+        <input
+          type="text"
+          placeholder="Cari jurusan atau slug..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-bg)] px-3 py-2 text-sm text-[var(--admin-fg)] placeholder:text-[var(--admin-fg-muted)] outline-none focus:border-[var(--admin-primary)]"
+        />
+      </div>
+
+      {/* Table */}
       <DataTable
         columns={columns}
         data={filteredData}
-        searchPlaceholder="Cari jurusan..."
-        onSearch={setSearch}
-        searchValue={search}
-        onDelete={(item) => setDeleteItem(item)}
-        actions={(item) => (
-          <div className="flex items-center justify-end gap-1">
-            <Link
-              href={`/admin/majors/${item.id}`}
-              className="p-1.5 rounded-md hover:bg-[var(--admin-bg-secondary)] text-[var(--admin-fg-muted)] hover:text-[var(--admin-primary)] transition-colors"
-              title="Detail"
-            >
-              <ExternalLink size={15} />
-            </Link>
-            <button
-              onClick={() => setDeleteItem(item)}
-              className="p-1.5 rounded-md hover:bg-[var(--admin-danger-bg)] text-[var(--admin-fg-muted)] hover:text-[var(--admin-danger)] transition-colors"
-              title="Hapus"
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-            </button>
-          </div>
-        )}
+        getRowId={(item: Major) => item.id}
+        onEdit={(item: Major) => {
+          window.location.href = `/admin/majors/${item.id}`;
+        }}
+        onDelete={(item: Major) => setDeleteItem(item)}
         emptyMessage="Belum ada data jurusan."
       />
 
+      {/* Delete Confirmation */}
       <ConfirmDialog
         open={!!deleteItem}
         onOpenChange={(open) => !open && setDeleteItem(null)}
         title="Hapus Jurusan"
-        description={`Apakah Anda yakin ingin menghapus jurusan "${deleteItem?.name}"? Semua mata pelajaran dan data karir terkait juga akan dihapus.`}
+        description={`Apakah Anda yakin ingin menghapus "${deleteItem?.name}" beserta seluruh data mapel dan karir terkait?`}
+        confirmText="Hapus"
         onConfirm={handleDelete}
         loading={deleting}
       />

@@ -271,12 +271,19 @@ export interface LoginResponse {
 // ── Dashboard Metrics ──────────────────────────────────────
 
 export interface DashboardMetrics {
-  total_majors: number;
-  total_applicants_current_year: number;
-  alumni_employment_rate: number;
-  total_innovations: number;
-  total_published_news: number;
-  total_facilities: number;
-  total_extracurriculars: number;
-  total_alumni: number;
+  total_students?: number;
+  total_staff?: number;
+  total_classrooms?: number;
+  total_majors?: number;
+  total_news?: number;
+  total_facilities?: number;
+  total_extracurriculars?: number;
+  total_innovations?: number;
+  total_alumni?: number;
+  total_faqs?: number;
+  is_ppdb_active?: boolean;
+  total_published_news?: number;
+  total_applicants_current_year?: number;
+  alumni_employment_rate?: number;
 }
+

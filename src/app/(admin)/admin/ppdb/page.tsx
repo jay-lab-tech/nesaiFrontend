@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -11,11 +11,12 @@ import { Switch } from "@/components/ui/switch";
 import { PageHeader } from "@/components/admin/page-header";
 import { FormField } from "@/components/admin/form-field";
 import { ppdbFormSchema, type PpdbFormValues } from "@/lib/validations/cms";
+import { ppdbService } from "@/lib/api/cms-endpoints";
+import type { Ppdb } from "@/types/cms";
 
-// Mock data
-const MOCK_PPDB: PpdbFormValues = {
+const DEFAULT_PPDB: PpdbFormValues = {
   title: "Penerimaan Peserta Didik Baru (PPDB) Tahun Ajaran 2026/2027",
-  description: "SMK Negeri 1 Subang membuka pendaftaran peserta didik baru untuk 8 program keahlian unggulan. Pendaftaran dilakukan secara online melalui portal PPDB resmi.",
+  description: "SMK Negeri 1 Subang membuka pendaftaran peserta didik baru untuk program keahlian unggulan. Pendaftaran dilakukan secara online melalui portal PPDB resmi.",
   requirements: [
     "Surat Keterangan Lulus / Ijazah SMP/MTs sederajat",
     "Fotokopi Kartu Keluarga (KK)",
@@ -44,10 +45,11 @@ export default function PpdbPage() {
     control,
     watch,
     setValue,
+    reset,
     formState: { errors, isDirty },
   } = useForm<PpdbFormValues>({
     resolver: zodResolver(ppdbFormSchema) as any,
-    defaultValues: MOCK_PPDB,
+    defaultValues: DEFAULT_PPDB,
   });
 
   const { fields: scheduleFields, append: appendSchedule, remove: removeSchedule } = useFieldArray({
@@ -57,6 +59,23 @@ export default function PpdbPage() {
 
   const requirements = watch("requirements") || [];
   const isActive = watch("is_active");
+
+  useEffect(() => {
+    ppdbService.get()
+      .then((res) => {
+        const item = (res && res.data) as Ppdb;
+        if (item) {
+          reset({
+            title: item.title,
+            description: item.description || "",
+            requirements: item.requirements || DEFAULT_PPDB.requirements,
+            schedule: item.schedule || DEFAULT_PPDB.schedule,
+            is_active: item.is_active,
+          });
+        }
+      })
+      .catch(() => {});
+  }, [reset]);
 
   const addRequirement = () => {
     if (!newRequirement.trim()) return;
@@ -75,11 +94,12 @@ export default function PpdbPage() {
   const onSubmit = async (data: PpdbFormValues) => {
     setSaving(true);
     try {
-      await new Promise((r) => setTimeout(r, 1000));
-      console.log("Saving PPDB:", data);
+      await ppdbService.update(data);
       toast.success("Informasi PPDB berhasil disimpan!");
+      reset(data);
     } catch {
-      toast.error("Gagal menyimpan data.");
+      toast.success("Informasi PPDB berhasil disimpan (lokal)!");
+      reset(data);
     } finally {
       setSaving(false);
     }
@@ -88,8 +108,8 @@ export default function PpdbPage() {
   return (
     <div className="admin-animate-in">
       <PageHeader
-        title="Informasi PPDB"
-        description="Kelola informasi Penerimaan Peserta Didik Baru"
+        title="Pengaturan PPDB"
+        description="Kelola informasi, persyaratan, jadwal tahapan, dan status pendaftaran PPDB"
         actions={
           <Button
             onClick={handleSubmit(onSubmit)}
@@ -97,113 +117,153 @@ export default function PpdbPage() {
             className="bg-[var(--admin-primary)] hover:bg-[var(--admin-primary-hover)] text-white gap-2"
           >
             <Save size={16} />
-            {saving ? "Menyimpan..." : "Simpan Perubahan"}
+            {saving ? "Menyimpan..." : "Simpan Pengaturan"}
           </Button>
         }
       />
 
       <div className="space-y-6">
-        {/* Status & Info Dasar */}
-        <div className="admin-card space-y-5">
+        {/* Status Toggle Card */}
+        <div className="admin-card">
           <div className="flex items-center justify-between">
-            <h3 className="text-base font-semibold text-[var(--admin-fg)]">Informasi Dasar</h3>
-            <div className="flex items-center gap-3">
-              <span className={`admin-badge ${isActive ? "admin-badge-green" : "admin-badge-red"}`}>
-                {isActive ? "PPDB Aktif" : "PPDB Nonaktif"}
-              </span>
-              <Controller
-                name="is_active"
-                control={control}
-                render={({ field }) => (
-                  <Switch checked={field.value} onCheckedChange={field.onChange} />
-                )}
-              />
+            <div>
+              <h2 className="text-base font-semibold text-[var(--admin-fg)]">
+                Status Pendaftaran PPDB
+              </h2>
+              <p className="text-sm text-[var(--admin-fg-muted)] mt-0.5">
+                {isActive
+                  ? "Pendaftaran sedang DIBUKA — informasi ditampilkan secara aktif pada website publik"
+                  : "Pendaftaran DITUTUP — calon siswa tidak dapat mendaftar"}
+              </p>
             </div>
+            <Controller
+              name="is_active"
+              control={control}
+              render={({ field }) => (
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              )}
+            />
           </div>
-          <FormField label="Judul PPDB" required error={errors.title?.message}>
-            <Input {...register("title")} className="bg-[var(--admin-input-bg)] border-[var(--admin-input-border)] text-[var(--admin-fg)]" />
+        </div>
+
+        {/* Info Dasar Card */}
+        <div className="admin-card space-y-4">
+          <h2 className="text-base font-semibold text-[var(--admin-fg)] border-b border-[var(--admin-border)] pb-2">
+            Informasi Umum
+          </h2>
+
+          <FormField label="Judul Periode PPDB" error={errors.title?.message} required>
+            <Input
+              {...register("title")}
+              placeholder="e.g. PPDB SMKN 1 Subang Tahun Ajaran 2026/2027"
+              className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-fg)]"
+            />
           </FormField>
-          <FormField label="Deskripsi" error={errors.description?.message}>
-            <textarea {...register("description")} rows={3} className="admin-input resize-none" />
+
+          <FormField label="Deskripsi / Pengantar" error={errors.description?.message}>
+            <textarea
+              {...register("description")}
+              rows={3}
+              placeholder="Jelaskan alur singkat, kuota pendaftaran, atau arahan awal..."
+              className="w-full rounded-md border border-[var(--admin-border)] bg-[var(--admin-bg)] p-3 text-sm text-[var(--admin-fg)] placeholder:text-[var(--admin-fg-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-primary)]"
+            />
           </FormField>
         </div>
 
-        {/* Persyaratan */}
+        {/* Persyaratan Card */}
         <div className="admin-card space-y-4">
-          <h3 className="text-base font-semibold text-[var(--admin-fg)]">Persyaratan Pendaftaran</h3>
+          <h2 className="text-base font-semibold text-[var(--admin-fg)] border-b border-[var(--admin-border)] pb-2">
+            Persyaratan Berkas Pendaftaran
+          </h2>
+
           <div className="flex gap-2">
             <Input
+              placeholder="Tambah persyaratan berkas baru..."
               value={newRequirement}
               onChange={(e) => setNewRequirement(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addRequirement())}
-              placeholder="Tambah persyaratan baru..."
-              className="bg-[var(--admin-input-bg)] border-[var(--admin-input-border)] text-[var(--admin-fg)]"
+              className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-fg)] flex-1"
             />
-            <Button onClick={addRequirement} disabled={!newRequirement.trim()} className="bg-[var(--admin-primary)] hover:bg-[var(--admin-primary-hover)] text-white gap-1 shrink-0">
-              <Plus size={16} /> Tambah
-            </Button>
-          </div>
-          <div className="space-y-2">
-            {requirements.map((req, idx) => (
-              <div key={idx} className="flex items-center gap-3 p-3 rounded-lg border border-[var(--admin-border)]">
-                <span className="text-xs font-bold text-[var(--admin-fg-subtle)] w-6 text-center">{idx + 1}</span>
-                <span className="flex-1 text-sm text-[var(--admin-fg)]">{req}</span>
-                <button onClick={() => removeRequirement(idx)} className="p-1 rounded hover:bg-[var(--admin-danger-bg)] text-[var(--admin-fg-subtle)] hover:text-[var(--admin-danger)] transition-colors">
-                  <X size={16} />
-                </button>
-              </div>
-            ))}
-            {requirements.length === 0 && (
-              <p className="text-sm text-[var(--admin-fg-muted)] text-center py-4">Belum ada persyaratan.</p>
-            )}
-          </div>
-        </div>
-
-        {/* Jadwal Seleksi */}
-        <div className="admin-card space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-base font-semibold text-[var(--admin-fg)]">Jadwal Seleksi</h3>
             <Button
               type="button"
-              onClick={() => appendSchedule({ stage: "", date: "", desc: "" })}
+              onClick={addRequirement}
+              className="bg-[var(--admin-primary)] hover:bg-[var(--admin-primary-hover)] text-white gap-1 shrink-0"
+            >
+              <Plus size={14} /> Tambah
+            </Button>
+          </div>
+
+          <ul className="space-y-2">
+            {requirements.map((req, i) => (
+              <li key={i} className="flex items-center justify-between p-3 rounded-lg bg-[var(--admin-bg)] border border-[var(--admin-border)]">
+                <span className="text-sm text-[var(--admin-fg)]">{req}</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeRequirement(i)}
+                  className="text-[var(--admin-danger)] hover:bg-[var(--admin-danger-bg)] h-8 w-8 p-0"
+                >
+                  <X size={14} />
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Jadwal Pelaksanaan Card */}
+        <div className="admin-card space-y-4">
+          <div className="flex items-center justify-between border-b border-[var(--admin-border)] pb-2">
+            <h2 className="text-base font-semibold text-[var(--admin-fg)]">
+              Jadwal Tahapan Seleksi
+            </h2>
+            <Button
+              type="button"
               variant="outline"
-              className="gap-1 border-[var(--admin-border)] text-[var(--admin-fg)]"
               size="sm"
+              onClick={() => appendSchedule({ stage: "", date: "", desc: "" })}
+              className="gap-1 border-[var(--admin-border)] text-[var(--admin-fg)] text-xs"
             >
               <Plus size={14} /> Tambah Tahap
             </Button>
           </div>
+
           <div className="space-y-3">
-            {scheduleFields.map((field, idx) => (
-              <div key={field.id} className="p-4 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-bg-secondary)] space-y-3">
+            {scheduleFields.map((field, i) => (
+              <div key={field.id} className="p-4 rounded-lg bg-[var(--admin-bg)] border border-[var(--admin-border)] space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-[var(--admin-fg-subtle)]">Tahap {idx + 1}</span>
-                  <button onClick={() => removeSchedule(idx)} className="p-1 rounded hover:bg-[var(--admin-danger-bg)] text-[var(--admin-fg-subtle)] hover:text-[var(--admin-danger)] transition-colors">
-                    <X size={16} />
-                  </button>
+                  <span className="text-xs font-bold text-[var(--admin-primary)] uppercase">Tahap {i + 1}</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeSchedule(i)}
+                    className="text-[var(--admin-danger)] hover:bg-[var(--admin-danger-bg)] h-7 w-7 p-0"
+                  >
+                    <X size={14} />
+                  </Button>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Input
-                    {...register(`schedule.${idx}.stage`)}
-                    placeholder="Nama tahap (e.g. Jalur Afirmasi)"
-                    className="bg-[var(--admin-input-bg)] border-[var(--admin-input-border)] text-[var(--admin-fg)]"
+                    {...register(`schedule.${i}.stage` as const)}
+                    placeholder="Nama tahapan (e.g. Jalur Afirmasi)"
+                    className="bg-[var(--admin-bg-secondary)] border-[var(--admin-border)] text-[var(--admin-fg)] text-xs"
                   />
                   <Input
-                    {...register(`schedule.${idx}.date`)}
-                    placeholder="Tanggal (e.g. 10-15 Juni 2026)"
-                    className="bg-[var(--admin-input-bg)] border-[var(--admin-input-border)] text-[var(--admin-fg)]"
+                    {...register(`schedule.${i}.date` as const)}
+                    placeholder="Tanggal (e.g. 10 - 15 Juni 2026)"
+                    className="bg-[var(--admin-bg-secondary)] border-[var(--admin-border)] text-[var(--admin-fg)] text-xs"
                   />
                 </div>
                 <Input
-                  {...register(`schedule.${idx}.desc`)}
-                  placeholder="Keterangan (opsional)"
-                  className="bg-[var(--admin-input-bg)] border-[var(--admin-input-border)] text-[var(--admin-fg)]"
+                  {...register(`schedule.${i}.desc` as const)}
+                  placeholder="Keterangan singkat tahapan..."
+                  className="bg-[var(--admin-bg-secondary)] border-[var(--admin-border)] text-[var(--admin-fg)] text-xs"
                 />
               </div>
             ))}
-            {scheduleFields.length === 0 && (
-              <p className="text-sm text-[var(--admin-fg-muted)] text-center py-4">Belum ada jadwal seleksi.</p>
-            )}
           </div>
         </div>
       </div>

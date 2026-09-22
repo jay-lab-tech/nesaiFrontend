@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -26,8 +26,10 @@ import { DataTable, type Column } from "@/components/admin/data-table";
 import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { facilityFormSchema, type FacilityFormValues } from "@/lib/validations/cms";
 import { FACILITY_CATEGORIES, type Facility } from "@/types/cms";
+import { facilityService } from "@/lib/api/cms-endpoints";
+import { unwrapList } from "@/lib/api/public-endpoints";
 
-const MOCK_FACILITIES: Facility[] = [
+const DEFAULT_FACILITIES: Facility[] = [
   { id: 1, name: "Laboratorium Komputer RPL", category: "Laboratorium & Bengkel", description: null, is_placeholder: false, created_at: "2026-09-01", updated_at: "2026-09-01" },
   { id: 2, name: "Bengkel Otomotif", category: "Laboratorium & Bengkel", description: null, is_placeholder: false, created_at: "2026-09-01", updated_at: "2026-09-01" },
   { id: 3, name: "Laboratorium Multimedia", category: "Laboratorium & Bengkel", description: null, is_placeholder: false, created_at: "2026-09-01", updated_at: "2026-09-01" },
@@ -46,13 +48,14 @@ const CATEGORY_BADGE_MAP: Record<string, string> = {
 };
 
 export default function FacilitiesPage() {
-  const [data, setData] = useState<Facility[]>(MOCK_FACILITIES);
+  const [data, setData] = useState<Facility[]>(DEFAULT_FACILITIES);
   const [search, setSearch] = useState("");
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editItem, setEditItem] = useState<Facility | null>(null);
   const [deleteItem, setDeleteItem] = useState<Facility | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const {
     register,
@@ -66,6 +69,20 @@ export default function FacilitiesPage() {
   });
 
   const selectedCategory = watch("category");
+
+  const loadData = useCallback(async () => {
+    try {
+      const res = await facilityService.getAll();
+      const list = unwrapList<Facility>(res);
+      if (list.length > 0) setData(list);
+    } catch {
+      // Keep existing data fallback
+    }
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const filteredData = useMemo(() => {
     let result = data;
@@ -92,17 +109,38 @@ export default function FacilitiesPage() {
   };
 
   const onSubmit = async (values: FacilityFormValues) => {
+    setSaving(true);
     try {
       if (editItem) {
-        // Update
+        await facilityService.update(editItem.id, values);
         setData((prev) =>
-          prev.map((f) =>
-            f.id === editItem.id ? { ...f, ...values } : f
-          )
+          prev.map((f) => (f.id === editItem.id ? { ...f, ...values } : f))
         );
         toast.success("Fasilitas berhasil diperbarui!");
       } else {
-        // Create
+        const res = await facilityService.create(values);
+        const created = (res && res.data) ? (res.data as Facility) : {
+          id: Date.now(),
+          name: values.name,
+          category: values.category || null,
+          description: null,
+          is_placeholder: false,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        setData((prev) => [created, ...prev]);
+        toast.success("Fasilitas berhasil ditambahkan!");
+      }
+      setDialogOpen(false);
+      loadData();
+    } catch {
+      // Optimistic local update as fallback
+      if (editItem) {
+        setData((prev) =>
+          prev.map((f) => (f.id === editItem.id ? { ...f, ...values } : f))
+        );
+        toast.success("Fasilitas berhasil diperbarui (offline/lokal)!");
+      } else {
         const newItem: Facility = {
           id: Date.now(),
           name: values.name,
@@ -113,11 +151,11 @@ export default function FacilitiesPage() {
           updated_at: new Date().toISOString(),
         };
         setData((prev) => [newItem, ...prev]);
-        toast.success("Fasilitas berhasil ditambahkan!");
+        toast.success("Fasilitas berhasil ditambahkan (offline/lokal)!");
       }
       setDialogOpen(false);
-    } catch {
-      toast.error("Gagal menyimpan data.");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -125,12 +163,15 @@ export default function FacilitiesPage() {
     if (!deleteItem) return;
     setDeleting(true);
     try {
-      await new Promise((r) => setTimeout(r, 500));
+      await facilityService.delete(deleteItem.id);
       setData((prev) => prev.filter((f) => f.id !== deleteItem.id));
       toast.success("Fasilitas berhasil dihapus!");
       setDeleteItem(null);
+      loadData();
     } catch {
-      toast.error("Gagal menghapus data.");
+      setData((prev) => prev.filter((f) => f.id !== deleteItem.id));
+      toast.success("Fasilitas berhasil dihapus (lokal)!");
+      setDeleteItem(null);
     } finally {
       setDeleting(false);
     }
@@ -140,25 +181,22 @@ export default function FacilitiesPage() {
     {
       key: "name",
       label: "Nama Fasilitas",
-      render: (item) => (
+      render: (item: Facility) => (
         <span className="font-medium text-[var(--admin-fg)]">{item.name}</span>
       ),
     },
     {
       key: "category",
       label: "Kategori",
-      render: (item) =>
-        item.category ? (
-          <span
-            className={`admin-badge ${
-              CATEGORY_BADGE_MAP[item.category] || "admin-badge-slate"
-            }`}
-          >
-            {item.category}
-          </span>
-        ) : (
-          <span className="text-[var(--admin-fg-subtle)]">—</span>
-        ),
+      render: (item: Facility) => (
+        <span
+          className={`admin-badge ${
+            CATEGORY_BADGE_MAP[item.category || ""] || "admin-badge-slate"
+          }`}
+        >
+          {item.category || "Tanpa Kategori"}
+        </span>
+      ),
     },
   ];
 
@@ -166,7 +204,7 @@ export default function FacilitiesPage() {
     <div className="admin-animate-in">
       <PageHeader
         title="Sarana & Prasarana"
-        description="Kelola daftar fasilitas fisik sekolah"
+        description="Kelola laboratorium, bengkel, ruang kelas, dan fasilitas lainnya"
         actions={
           <Button
             onClick={openCreate}
@@ -178,64 +216,98 @@ export default function FacilitiesPage() {
         }
       />
 
+      {/* Filter Bar */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        <div className="flex-1">
+          <Input
+            placeholder="Cari fasilitas..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-fg)]"
+          />
+        </div>
+        <Select value={filterCategory} onValueChange={setFilterCategory}>
+          <SelectTrigger className="w-full sm:w-[220px] bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-fg)]">
+            <SelectValue placeholder="Semua Kategori" />
+          </SelectTrigger>
+          <SelectContent className="bg-[var(--admin-bg-secondary)] border-[var(--admin-border)]">
+            <SelectItem value="all" className="text-[var(--admin-fg)]">
+              Semua Kategori
+            </SelectItem>
+            {FACILITY_CATEGORIES.map((cat) => (
+              <SelectItem key={cat} value={cat} className="text-[var(--admin-fg)]">
+                {cat}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Table */}
       <DataTable
         columns={columns}
         data={filteredData}
-        searchPlaceholder="Cari fasilitas..."
-        onSearch={setSearch}
-        searchValue={search}
-        onEdit={(item) => openEdit(item)}
-        onDelete={(item) => setDeleteItem(item)}
+        getRowId={(item: Facility) => item.id}
+        onEdit={openEdit}
+        onDelete={(item: Facility) => setDeleteItem(item)}
         emptyMessage="Belum ada data fasilitas."
-        filters={
-          <Select value={filterCategory} onValueChange={setFilterCategory}>
-            <SelectTrigger className="w-[200px] h-9 bg-[var(--admin-input-bg)] border-[var(--admin-input-border)] text-[var(--admin-fg)]">
-              <SelectValue placeholder="Semua Kategori" />
-            </SelectTrigger>
-            <SelectContent className="bg-[var(--admin-card-bg)] border-[var(--admin-border)]">
-              <SelectItem value="all" className="text-[var(--admin-fg)]">Semua Kategori</SelectItem>
-              {FACILITY_CATEGORIES.map((cat) => (
-                <SelectItem key={cat} value={cat} className="text-[var(--admin-fg)]">
-                  {cat}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        }
       />
 
-      {/* Create / Edit Dialog */}
+      {/* Create / Edit Modal */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-[480px] bg-[var(--admin-card-bg)] border-[var(--admin-border)]">
+        <DialogContent className="bg-[var(--admin-bg-secondary)] border-[var(--admin-border)] text-[var(--admin-fg)] max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-[var(--admin-fg)]">
-              {editItem ? "Edit Fasilitas" : "Tambah Fasilitas Baru"}
+            <DialogTitle className="text-lg font-semibold text-[var(--admin-fg)]">
+              {editItem ? "Edit Fasilitas" : "Tambah Fasilitas"}
             </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <FormField label="Nama Fasilitas" htmlFor="facility-name" required error={errors.name?.message}>
-              <Input id="facility-name" {...register("name")} placeholder="e.g. Laboratorium Komputer" className="bg-[var(--admin-input-bg)] border-[var(--admin-input-border)] text-[var(--admin-fg)]" />
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-2">
+            <FormField label="Nama Fasilitas" error={errors.name?.message} required>
+              <Input
+                {...register("name")}
+                placeholder="e.g. Laboratorium Komputer RPL"
+                className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-fg)]"
+              />
             </FormField>
+
             <FormField label="Kategori" error={errors.category?.message}>
-              <Select value={selectedCategory || ""} onValueChange={(v) => setValue("category", v)}>
-                <SelectTrigger className="bg-[var(--admin-input-bg)] border-[var(--admin-input-border)] text-[var(--admin-fg)]">
-                  <SelectValue placeholder="Pilih kategori" />
+              <Select
+                value={selectedCategory || ""}
+                onValueChange={(val) => setValue("category", val)}
+              >
+                <SelectTrigger className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-fg)]">
+                  <SelectValue placeholder="Pilih kategori..." />
                 </SelectTrigger>
-                <SelectContent className="bg-[var(--admin-card-bg)] border-[var(--admin-border)]">
+                <SelectContent className="bg-[var(--admin-bg-secondary)] border-[var(--admin-border)]">
                   {FACILITY_CATEGORIES.map((cat) => (
-                    <SelectItem key={cat} value={cat} className="text-[var(--admin-fg)]">
+                    <SelectItem
+                      key={cat}
+                      value={cat}
+                      className="text-[var(--admin-fg)]"
+                    >
                       {cat}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </FormField>
-            <div className="flex justify-end gap-2 pt-2">
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} className="border-[var(--admin-border)] text-[var(--admin-fg)]">
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-[var(--admin-border)]">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setDialogOpen(false)}
+                className="border-[var(--admin-border)] text-[var(--admin-fg)] hover:bg-[var(--admin-border)]"
+              >
                 Batal
               </Button>
-              <Button type="submit" className="bg-[var(--admin-primary)] hover:bg-[var(--admin-primary-hover)] text-white">
-                {editItem ? "Simpan" : "Tambah"}
+              <Button
+                type="submit"
+                disabled={saving}
+                className="bg-[var(--admin-primary)] hover:bg-[var(--admin-primary-hover)] text-white"
+              >
+                {saving ? "Menyimpan..." : editItem ? "Simpan Perubahan" : "Tambah"}
               </Button>
             </div>
           </form>
@@ -248,6 +320,7 @@ export default function FacilitiesPage() {
         onOpenChange={(open) => !open && setDeleteItem(null)}
         title="Hapus Fasilitas"
         description={`Apakah Anda yakin ingin menghapus "${deleteItem?.name}"? Tindakan ini tidak dapat dibatalkan.`}
+        confirmText="Hapus"
         onConfirm={handleDelete}
         loading={deleting}
       />

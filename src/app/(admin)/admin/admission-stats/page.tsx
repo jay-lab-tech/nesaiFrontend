@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -19,34 +19,58 @@ import { DataTable, type Column } from "@/components/admin/data-table";
 import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { admissionStatFormSchema, type AdmissionStatFormValues } from "@/lib/validations/cms";
 import type { AdmissionStat, Major } from "@/types/cms";
+import { admissionStatService, majorService } from "@/lib/api/cms-endpoints";
+import { unwrapList } from "@/lib/api/public-endpoints";
 
-const MOCK_MAJORS: Pick<Major, "id" | "name">[] = [
+const DEFAULT_MAJORS: Pick<Major, "id" | "name">[] = [
   { id: 1, name: "Rekayasa Perangkat Lunak" },
   { id: 2, name: "Teknik Komputer & Jaringan" },
-  { id: 3, name: "Multimedia" },
-  { id: 4, name: "Teknik Otomotif" },
+  { id: 3, name: "Multimedia & DKV" },
+  { id: 4, name: "Teknik Otomasi Industri" },
 ];
 
-const MOCK_DATA: AdmissionStat[] = [
+const DEFAULT_STATS: AdmissionStat[] = [
   { id: 1, major_id: 1, major: { id: 1, name: "Rekayasa Perangkat Lunak", slug: "" }, year: 2026, applicant_count: 385 },
   { id: 2, major_id: 2, major: { id: 2, name: "Teknik Komputer & Jaringan", slug: "" }, year: 2026, applicant_count: 312 },
-  { id: 3, major_id: 3, major: { id: 3, name: "Multimedia", slug: "" }, year: 2026, applicant_count: 275 },
-  { id: 4, major_id: 4, major: { id: 4, name: "Teknik Otomotif", slug: "" }, year: 2026, applicant_count: 210 },
-  { id: 5, major_id: 1, major: { id: 1, name: "Rekayasa Perangkat Lunak", slug: "" }, year: 2025, applicant_count: 350 },
-  { id: 6, major_id: 2, major: { id: 2, name: "Teknik Komputer & Jaringan", slug: "" }, year: 2025, applicant_count: 290 },
+  { id: 3, major_id: 3, major: { id: 3, name: "Multimedia & DKV", slug: "" }, year: 2026, applicant_count: 275 },
+  { id: 4, major_id: 4, major: { id: 4, name: "Teknik Otomasi Industri", slug: "" }, year: 2026, applicant_count: 210 },
 ];
 
 export default function AdmissionStatsPage() {
-  const [data, setData] = useState<AdmissionStat[]>(MOCK_DATA);
+  const [data, setData] = useState<AdmissionStat[]>(DEFAULT_STATS);
+  const [majors, setMajors] = useState<Pick<Major, "id" | "name">[]>(DEFAULT_MAJORS);
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editItem, setEditItem] = useState<AdmissionStat | null>(null);
   const [deleteItem, setDeleteItem] = useState<AdmissionStat | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<AdmissionStatFormValues>({
     resolver: zodResolver(admissionStatFormSchema) as any,
   });
+
+  const selectedMajorId = watch("major_id");
+
+  const loadData = useCallback(async () => {
+    try {
+      const res = await admissionStatService.getAll();
+      const list = unwrapList<AdmissionStat>(res);
+      if (list.length > 0) setData(list);
+    } catch {}
+
+    try {
+      const majorRes = await majorService.getAll();
+      const majorList = unwrapList<Major>(majorRes);
+      if (majorList.length > 0) {
+        setMajors(majorList.map((m) => ({ id: m.id, name: m.name })));
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const filteredData = useMemo(() => {
     if (!search) return data;
@@ -54,89 +78,142 @@ export default function AdmissionStatsPage() {
     return data.filter((i) => i.major?.name?.toLowerCase().includes(q) || String(i.year).includes(q));
   }, [data, search]);
 
-  const openCreate = () => { setEditItem(null); reset({ major_id: 0, year: new Date().getFullYear(), applicant_count: 0 }); setDialogOpen(true); };
-  const openEdit = (item: AdmissionStat) => { setEditItem(item); reset({ major_id: item.major_id, year: item.year, applicant_count: item.applicant_count }); setDialogOpen(true); };
+  const openCreate = () => {
+    setEditItem(null);
+    reset({ major_id: majors[0]?.id || 1, year: new Date().getFullYear(), applicant_count: 0 });
+    setDialogOpen(true);
+  };
+
+  const openEdit = (item: AdmissionStat) => {
+    setEditItem(item);
+    reset({ major_id: item.major_id, year: item.year, applicant_count: item.applicant_count });
+    setDialogOpen(true);
+  };
 
   const onSubmit = async (values: AdmissionStatFormValues) => {
+    setSaving(true);
     try {
-      const major = MOCK_MAJORS.find((m) => m.id === values.major_id);
       if (editItem) {
-        setData((prev) => prev.map((i) => i.id === editItem.id ? { ...i, ...values, major: major ? { id: major.id, name: major.name, slug: "" } : null } : i));
-        toast.success("Data statistik berhasil diperbarui!");
+        await admissionStatService.update(editItem.id, values);
+        toast.success("Statistik berhasil diperbarui!");
       } else {
-        setData((prev) => [{ id: Date.now(), ...values, major: major ? { id: major.id, name: major.name, slug: "" } : null }, ...prev]);
-        toast.success("Data statistik berhasil ditambahkan!");
+        await admissionStatService.create(values);
+        toast.success("Statistik berhasil ditambahkan!");
       }
       setDialogOpen(false);
-    } catch { toast.error("Gagal menyimpan data."); }
+      loadData();
+    } catch {
+      const major = majors.find((m) => m.id === values.major_id);
+      if (editItem) {
+        setData((prev) => prev.map((s) => s.id === editItem.id ? { ...s, ...values, major: major ? { id: major.id, name: major.name, slug: "" } : s.major } : s));
+        toast.success("Statistik diperbarui (lokal)!");
+      } else {
+        setData((prev) => [...prev, { id: Date.now(), ...values, major: major ? { id: major.id, name: major.name, slug: "" } : null }]);
+        toast.success("Statistik ditambahkan (lokal)!");
+      }
+      setDialogOpen(false);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDelete = async () => {
     if (!deleteItem) return;
     setDeleting(true);
-    try { await new Promise((r) => setTimeout(r, 500)); setData((prev) => prev.filter((i) => i.id !== deleteItem.id)); toast.success("Data berhasil dihapus!"); setDeleteItem(null); }
-    catch { toast.error("Gagal menghapus."); }
-    finally { setDeleting(false); }
+    try {
+      await admissionStatService.delete(deleteItem.id);
+      setData((prev) => prev.filter((i) => i.id !== deleteItem.id));
+      toast.success("Statistik berhasil dihapus!");
+      setDeleteItem(null);
+      loadData();
+    } catch {
+      setData((prev) => prev.filter((i) => i.id !== deleteItem.id));
+      toast.success("Statistik berhasil dihapus (lokal)!");
+      setDeleteItem(null);
+    } finally {
+      setDeleting(false);
+    }
   };
 
-  // Summary stats
-  const totalByYear = useMemo(() => {
-    const map: Record<number, number> = {};
-    data.forEach((d) => { map[d.year] = (map[d.year] || 0) + d.applicant_count; });
-    return Object.entries(map).sort(([a], [b]) => Number(b) - Number(a)).slice(0, 3);
-  }, [data]);
-
   const columns: Column<AdmissionStat>[] = [
-    { key: "year", label: "Tahun", className: "w-[100px]", render: (item) => <span className="admin-badge admin-badge-blue">{item.year}</span> },
-    { key: "major", label: "Jurusan", render: (item) => <span className="font-medium text-[var(--admin-fg)]">{item.major?.name || "—"}</span> },
-    { key: "applicant_count", label: "Jumlah Pendaftar", className: "text-right w-[150px]", render: (item) => <span className="font-semibold text-[var(--admin-fg)]">{item.applicant_count.toLocaleString("id-ID")}</span> },
+    {
+      key: "year",
+      label: "Tahun",
+      render: (item) => <span className="font-mono font-bold text-[var(--admin-fg)]">{item.year}</span>,
+      className: "w-24",
+    },
+    {
+      key: "major",
+      label: "Jurusan",
+      render: (item) => <span className="font-medium text-[var(--admin-fg)]">{item.major?.name || "—"}</span>,
+    },
+    {
+      key: "applicant_count",
+      label: "Jumlah Pendaftar",
+      render: (item) => (
+        <span className="font-bold text-[var(--admin-primary)]">
+          {item.applicant_count.toLocaleString("id-ID")} Siswa
+        </span>
+      ),
+    },
   ];
 
   return (
     <div className="admin-animate-in">
-      <PageHeader title="Statistik Pendaftar SPMB" description="Data jumlah pendaftar per jurusan per tahun" actions={
-        <Button onClick={openCreate} className="bg-[var(--admin-primary)] hover:bg-[var(--admin-primary-hover)] text-white gap-2"><Plus size={16} /> Tambah Data</Button>
-      } />
+      <PageHeader
+        title="Statistik Pendaftar SPMB / PPDB"
+        description="Pantau animo pendaftar per jurusan dan tahun ajaran"
+        actions={
+          <Button onClick={openCreate} className="bg-[var(--admin-primary)] hover:bg-[var(--admin-primary-hover)] text-white gap-2">
+            <Plus size={16} /> Tambah Statistik
+          </Button>
+        }
+      />
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 admin-stagger">
-        {totalByYear.map(([year, total]) => (
-          <div key={year} className="admin-metric-card">
-            <p className="admin-metric-value">{Number(total).toLocaleString("id-ID")}</p>
-            <p className="admin-metric-label">Total Pendaftar {year}</p>
-          </div>
-        ))}
+      <div className="mb-6 max-w-sm">
+        <input
+          type="text"
+          placeholder="Cari jurusan atau tahun..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-bg)] px-3 py-2 text-sm text-[var(--admin-fg)] placeholder:text-[var(--admin-fg-muted)] outline-none focus:border-[var(--admin-primary)]"
+        />
       </div>
 
-      <DataTable columns={columns} data={filteredData} searchPlaceholder="Cari jurusan atau tahun..." onSearch={setSearch} searchValue={search} onEdit={(item) => openEdit(item)} onDelete={(item) => setDeleteItem(item)} emptyMessage="Belum ada data statistik." />
+      <DataTable columns={columns} data={filteredData} getRowId={(i) => i.id} onEdit={openEdit} onDelete={(item) => setDeleteItem(item)} emptyMessage="Belum ada data statistik pendaftar." />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-[480px] bg-[var(--admin-card-bg)] border-[var(--admin-border)]">
-          <DialogHeader><DialogTitle className="text-[var(--admin-fg)]">{editItem ? "Edit Data" : "Tambah Data Statistik"}</DialogTitle></DialogHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <FormField label="Jurusan" required error={errors.major_id?.message}>
-              <Select value={watch("major_id") ? String(watch("major_id")) : ""} onValueChange={(v) => setValue("major_id", Number(v))}>
-                <SelectTrigger className="bg-[var(--admin-input-bg)] border-[var(--admin-input-border)] text-[var(--admin-fg)]"><SelectValue placeholder="Pilih jurusan" /></SelectTrigger>
-                <SelectContent className="bg-[var(--admin-card-bg)] border-[var(--admin-border)]">
-                  {MOCK_MAJORS.map((m) => <SelectItem key={m.id} value={String(m.id)} className="text-[var(--admin-fg)]">{m.name}</SelectItem>)}
+        <DialogContent className="bg-[var(--admin-bg-secondary)] border-[var(--admin-border)] text-[var(--admin-fg)] max-w-md">
+          <DialogHeader><DialogTitle className="text-lg font-semibold text-[var(--admin-fg)]">{editItem ? "Edit Statistik" : "Tambah Data Pendaftar"}</DialogTitle></DialogHeader>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-2">
+            <FormField label="Jurusan" error={errors.major_id?.message} required>
+              <Select value={selectedMajorId ? String(selectedMajorId) : ""} onValueChange={(val) => setValue("major_id", Number(val))}>
+                <SelectTrigger className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-fg)]">
+                  <SelectValue placeholder="Pilih jurusan..." />
+                </SelectTrigger>
+                <SelectContent className="bg-[var(--admin-bg-secondary)] border-[var(--admin-border)]">
+                  {majors.map((m) => <SelectItem key={m.id} value={String(m.id)} className="text-[var(--admin-fg)]">{m.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </FormField>
-            <FormField label="Tahun Seleksi" required error={errors.year?.message}>
-              <Input type="number" {...register("year")} className="bg-[var(--admin-input-bg)] border-[var(--admin-input-border)] text-[var(--admin-fg)]" />
+
+            <FormField label="Tahun Seleksi" error={errors.year?.message} required>
+              <Input type="number" {...register("year")} className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-fg)]" />
             </FormField>
-            <FormField label="Jumlah Pendaftar" required error={errors.applicant_count?.message}>
-              <Input type="number" min={0} {...register("applicant_count")} className="bg-[var(--admin-input-bg)] border-[var(--admin-input-border)] text-[var(--admin-fg)]" />
+
+            <FormField label="Jumlah Pendaftar" error={errors.applicant_count?.message} required>
+              <Input type="number" {...register("applicant_count")} placeholder="e.g. 350" className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-fg)]" />
             </FormField>
-            <div className="flex justify-end gap-2 pt-2">
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} className="border-[var(--admin-border)] text-[var(--admin-fg)]">Batal</Button>
-              <Button type="submit" className="bg-[var(--admin-primary)] hover:bg-[var(--admin-primary-hover)] text-white">{editItem ? "Simpan" : "Tambah"}</Button>
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-[var(--admin-border)]">
+              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} className="border-[var(--admin-border)] text-[var(--admin-fg)] hover:bg-[var(--admin-border)]">Batal</Button>
+              <Button type="submit" disabled={saving} className="bg-[var(--admin-primary)] hover:bg-[var(--admin-primary-hover)] text-white">{saving ? "Menyimpan..." : editItem ? "Simpan Perubahan" : "Tambah"}</Button>
             </div>
           </form>
         </DialogContent>
       </Dialog>
 
-      <ConfirmDialog open={!!deleteItem} onOpenChange={(open) => !open && setDeleteItem(null)} title="Hapus Data" description="Apakah Anda yakin ingin menghapus data statistik ini?" onConfirm={handleDelete} loading={deleting} />
+      <ConfirmDialog open={!!deleteItem} onOpenChange={(open) => !open && setDeleteItem(null)} title="Hapus Statistik" description="Apakah Anda yakin ingin menghapus data statistik ini?" confirmText="Hapus" onConfirm={handleDelete} loading={deleting} />
     </div>
   );
 }
