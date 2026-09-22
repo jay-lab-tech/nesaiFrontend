@@ -1,138 +1,38 @@
 'use client';
+
 import Link from 'next/link';
 import type { FormEvent } from 'react';
-import { ArrowRight, Bot, ShieldCheck, Award, Sparkles, ChevronDown, Search } from 'lucide-react';
+import { ArrowUpRight, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { openNesaiChat } from '@/lib/nesai-events';
 
 export function HeroSection() {
   const router = useRouter();
-
   function handleSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const query = new FormData(event.currentTarget).get('query')?.toString().trim();
-    if (query) router.push(`/jurusan?search=${encodeURIComponent(query)}`);
-    else router.push('/jurusan');
+    router.push(query ? `/jurusan?search=${encodeURIComponent(query)}` : '/jurusan');
   }
 
   return (
-    <section className="relative overflow-hidden bg-slate-950 text-white pt-16 pb-24 md:pt-24 md:pb-32">
-      {/* Background Graphic & Glows */}
-      <div className="absolute inset-0 z-0 opacity-40">
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat filter brightness-50 contrast-125"
-          style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=2000&q=80')`,
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-slate-950/60" />
-        <div className="absolute inset-0 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:24px_24px] opacity-20" />
+    <section className="bg-[#eef2f0] text-[#172b3a]">
+      <div className="mx-auto grid max-w-7xl gap-10 px-5 pb-16 pt-14 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-16 lg:pb-24 lg:pt-20">
+        <div className="max-w-xl">
+          <p className="mb-6 text-xs font-semibold uppercase tracking-[0.22em] text-[#57717b]">SMK Negeri 1 Subang</p>
+          <h1 className="font-serif text-5xl leading-[0.98] tracking-[-0.04em] sm:text-6xl lg:text-7xl">Tumbuh dengan <span className="italic text-[#3f6f75]">arah</span> dan keahlian.</h1>
+          <p className="mt-7 max-w-md text-base leading-7 text-[#53646b] sm:text-lg">Pendidikan vokasi yang menyiapkan lulusan berkarakter, kompeten, dan siap melangkah ke dunia kerja maupun perguruan tinggi.</p>
+          <div className="mt-9 flex flex-wrap items-center gap-5">
+            <Link href="/profil" className="inline-flex items-center gap-2 bg-[#172b3a] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#2e5661]">Kenali sekolah kami <ArrowUpRight className="h-4 w-4" /></Link>
+            <Link href="/ppdb" className="text-sm font-semibold text-[#172b3a] underline decoration-[#e7ae32] decoration-2 underline-offset-8 hover:text-[#3f6f75]">Informasi PPDB</Link>
+          </div>
+        </div>
+        <div className="relative min-h-[390px] overflow-hidden bg-[#d6e1dc] sm:min-h-[500px]">
+          <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1400&q=85')" }} />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#172b3a]/55 via-transparent to-transparent" />
+          <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between text-white"><p className="max-w-[220px] text-sm leading-5">Ruang belajar untuk menemukan potensi dan masa depan.</p><span className="flex h-11 w-11 items-center justify-center rounded-full border border-white/70"><ArrowUpRight className="h-5 w-5" /></span></div>
+        </div>
       </div>
-
-      {/* Subtle Cyan and Orange Ambient Glows */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 h-96 w-[700px] rounded-full bg-blue-600/20 blur-3xl pointer-events-none" />
-      <div className="absolute top-1/3 left-1/4 h-64 w-64 rounded-full bg-cyan-500/15 blur-3xl pointer-events-none" />
-
-      <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 text-center">
-        {/* Badges */}
-        <div className="flex flex-wrap items-center justify-center gap-2.5 mb-6">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-500/20 border border-blue-400/30 px-3.5 py-1 text-xs font-semibold text-blue-300 backdrop-blur-md">
-            <Award className="h-3.5 w-3.5 text-cyan-400" />
-            SMK PUSAT KEUNGGULAN
-          </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 px-3.5 py-1 text-xs font-semibold text-emerald-300 backdrop-blur-md">
-            <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
-            TERAKREDITASI A
-          </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-500/20 border border-cyan-400/30 px-3.5 py-1 text-xs font-semibold text-cyan-200 backdrop-blur-md">
-            <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
-            NESAI AI INTEGRATED
-          </span>
-        </div>
-
-        {/* Main Headings */}
-        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-white mb-4 drop-shadow-sm">
-          SMKN 1 SUBANG
-        </h1>
-        <p className="text-xl sm:text-2xl md:text-3xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-sky-200 to-blue-300 mb-6 max-w-3xl mx-auto">
-          Mencetak Generasi Unggul Siap Industri 4.0
-        </p>
-
-        {/* Subtext */}
-        <p className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed">
-          Sekolah menengah kejuruan berstandar industri dengan kurikulum berbasis kompetensi,
-          fasilitas modern, kemitraan perusahaan multinasional, serta didampingi asisten virtual{' '}
-          <strong className="text-cyan-300 font-semibold">NESAI</strong> untuk memandu masa depanmu.
-        </p>
-
-        {/* School-style search bar inspired by the selected reference */}
-        <form onSubmit={handleSearch} className="mx-auto mb-8 flex max-w-3xl flex-col gap-2 rounded-2xl bg-white p-2 shadow-2xl shadow-slate-950/40 sm:flex-row">
-          <label htmlFor="school-search" className="sr-only">Cari informasi sekolah</label>
-          <div className="flex min-h-12 flex-1 items-center gap-3 rounded-xl px-4 text-left text-slate-500">
-            <Search className="h-5 w-5 shrink-0 text-blue-600" />
-            <input
-              id="school-search"
-              name="query"
-              type="search"
-              placeholder="Cari jurusan, fasilitas, berita, atau informasi PPDB..."
-              className="w-full bg-transparent text-sm outline-none placeholder:text-slate-400 sm:text-base"
-            />
-          </div>
-          <button type="submit" className="inline-flex min-h-12 items-center justify-center rounded-xl bg-amber-500 px-7 font-bold text-slate-950 transition hover:bg-amber-400">
-            Cari
-          </button>
-        </form>
-
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto">
-          <Link
-            href="/ppdb"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-600 px-7 py-3.5 text-base font-bold text-white shadow-lg shadow-orange-500/30 hover:from-orange-600 hover:to-amber-700 hover:shadow-orange-500/50 hover:scale-[1.02] active:scale-95 transition-all"
-          >
-            <span>Daftar PPDB 2026</span>
-            <ArrowRight className="h-5 w-5" />
-          </Link>
-
-          <button
-            type="button"
-            onClick={() => openNesaiChat('Halo NESAI! Tolong jelaskan profil keunggulan dan jurusan di SMKN 1 Subang.')}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl border border-cyan-400/50 bg-slate-900/80 px-6 py-3.5 text-base font-semibold text-cyan-200 backdrop-blur-md hover:bg-cyan-950/60 hover:border-cyan-300 hover:text-white transition-all active:scale-95 shadow-md shadow-cyan-950/50"
-          >
-            <Bot className="h-5 w-5 text-cyan-400" />
-            <span>Konsultasi NESAI</span>
-          </button>
-        </div>
-
-        {/* Quick Features Row */}
-        <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 border-t border-slate-800/80 pt-8 text-left">
-          <div className="p-3 rounded-lg bg-slate-900/40 border border-slate-800">
-            <p className="text-xs text-slate-400 font-medium">Kurikulum</p>
-            <p className="text-sm font-semibold text-slate-200">Berbasis Industri & TEFA</p>
-          </div>
-          <div className="p-3 rounded-lg bg-slate-900/40 border border-slate-800">
-            <p className="text-xs text-slate-400 font-medium">Sertifikasi</p>
-            <p className="text-sm font-semibold text-slate-200">Kompetensi sesuai industri</p>
-          </div>
-          <div className="p-3 rounded-lg bg-slate-900/40 border border-slate-800">
-            <p className="text-xs text-slate-400 font-medium">Penyaluran Kerja</p>
-            <p className="text-sm font-semibold text-slate-200">Informasi karier & alumni</p>
-          </div>
-          <div className="p-3 rounded-lg bg-slate-900/40 border border-slate-800">
-            <p className="text-xs text-slate-400 font-medium">Bimbingan Karir</p>
-            <p className="text-sm font-semibold text-slate-200">Didukung AI NESAI 24/7</p>
-          </div>
-        </div>
-
-        {/* Scroll Indicator */}
-        <div className="mt-8 flex justify-center">
-          <Link
-            href="/profil"
-            aria-label="Menuju profil sekolah"
-            className="text-slate-400 hover:text-cyan-300 transition-colors animate-bounce p-1"
-          >
-            <ChevronDown className="h-6 w-6" />
-          </Link>
-        </div>
+      <div className="mx-auto max-w-7xl px-5 pb-10 sm:px-8">
+        <form onSubmit={handleSearch} className="flex max-w-3xl items-center border-b border-[#9aaba8] py-3"><label htmlFor="school-search" className="sr-only">Cari informasi sekolah</label><Search className="mr-3 h-5 w-5 text-[#57717b]" /><input id="school-search" name="query" type="search" placeholder="Cari jurusan, berita, fasilitas..." className="min-w-0 flex-1 bg-transparent text-sm text-[#172b3a] outline-none placeholder:text-[#78908f]" /><button type="submit" className="text-sm font-semibold text-[#172b3a] hover:text-[#3f6f75]">Cari</button></form>
       </div>
     </section>
   );
