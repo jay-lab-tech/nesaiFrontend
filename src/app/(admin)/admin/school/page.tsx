@@ -76,11 +76,26 @@ export default function SchoolProfilePage() {
     setSaving(true);
     try {
       const { schoolService } = await import("@/lib/api/cms-endpoints");
-      await schoolService.update(data as unknown as Record<string, unknown>);
+
+      // Sanitize payload: strip empty strings from social_links to prevent validation errors
+      const payload: Record<string, unknown> = { ...data };
+      if (payload.social_links && typeof payload.social_links === "object") {
+        const cleanedLinks: Record<string, string> = {};
+        Object.entries(payload.social_links as Record<string, string>).forEach(([k, v]) => {
+          if (v && typeof v === "string" && v.trim() !== "") {
+            cleanedLinks[k] = v.trim();
+          }
+        });
+        payload.social_links = cleanedLinks;
+      }
+
+      await schoolService.update(payload);
       toast.success("Profil sekolah berhasil disimpan!");
       reset(data);
-    } catch {
-      toast.error("Gagal menyimpan data. Silakan coba lagi.");
+    } catch (err: unknown) {
+      console.error("Error updating school profile:", err);
+      const message = err instanceof Error ? err.message : "Gagal menyimpan data. Silakan coba lagi.";
+      toast.error(message);
     } finally {
       setSaving(false);
     }
