@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -17,7 +18,6 @@ import {
   HelpCircle,
   FileText,
   ChevronLeft,
-  Sparkles,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -139,21 +139,34 @@ export function AdminSidebar({ collapsed, onToggleCollapse }: SidebarProps) {
       }`}
     >
       {/* Logo / Brand */}
-      <div className="flex items-center gap-3 px-5 h-16 border-b border-[var(--admin-sidebar-border)] shrink-0">
-        <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-[var(--admin-accent)] text-[var(--admin-accent-fg)]">
-          <Sparkles size={20} />
+      <Link
+        href="/admin/dashboard"
+        className={`flex items-center ${
+          collapsed ? "justify-center px-2" : "gap-3 px-4"
+        } h-16 border-b border-[var(--admin-sidebar-border)] shrink-0 hover:bg-white/[0.04] transition-colors group`}
+        title="SMK Negeri 1 Subang — CMS Panel"
+      >
+        <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-white/10 p-1.5 shrink-0 border border-white/10 shadow-xs group-hover:scale-105 transition-transform">
+          <Image
+            src="/images/logo-smkn-1-subang.png"
+            alt="Logo SMKN 1 Subang"
+            width={32}
+            height={32}
+            className="object-contain w-full h-full"
+            priority
+          />
         </div>
         {!collapsed && (
           <div className="flex flex-col min-w-0">
             <span className="text-sm font-bold text-white tracking-wide truncate">
-              NESAS CMS
+              SMKN 1 SUBANG
             </span>
-            <span className="text-[10px] text-[var(--admin-fg-subtle)] tracking-wider uppercase">
-              Admin Panel
+            <span className="text-[10px] text-[var(--admin-accent)] font-semibold tracking-wider uppercase">
+              Admin CMS Panel
             </span>
           </div>
         )}
-      </div>
+      </Link>
 
       {/* Navigation */}
       <nav className="admin-sidebar-nav flex-1 overflow-y-auto py-4 px-3 space-y-1">

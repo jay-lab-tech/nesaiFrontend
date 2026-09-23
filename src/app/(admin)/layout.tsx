@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { Geist, Geist_Mono } from "next/font/google";
 import { usePathname, useRouter } from "next/navigation";
 import { Toaster } from "sonner";
@@ -84,7 +85,17 @@ export default function AdminLayout({
     return (
       <div className={`${geistSans.variable} ${geistMono.variable} min-h-screen admin-layout flex items-center justify-center`}>
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-3 border-[var(--admin-primary)] border-t-transparent rounded-full animate-spin" />
+          <div className="relative flex items-center justify-center w-14 h-14 rounded-2xl bg-white/10 dark:bg-white/5 p-2 border border-black/5 dark:border-white/10 shadow-xs">
+            <Image
+              src="/images/logo-smkn-1-subang.png"
+              alt="Logo SMKN 1 Subang"
+              width={40}
+              height={40}
+              className="object-contain"
+              priority
+            />
+          </div>
+          <div className="w-6 h-6 border-2 border-[var(--admin-primary)] border-t-transparent rounded-full animate-spin" />
           <p className="text-xs text-[var(--admin-fg-muted)] font-medium">Memeriksa autentikasi...</p>
         </div>
       </div>

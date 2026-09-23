@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import {
   GraduationCap,
   Users,
@@ -57,12 +58,31 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6 admin-animate-in">
-      {/* Page Title */}
-      <div>
-        <h1 className="text-2xl font-bold text-[var(--admin-fg)]">Dashboard</h1>
-        <p className="text-sm text-[var(--admin-fg-muted)] mt-1">
-          Selamat datang di Panel Admin CMS NESAS — SMK Negeri 1 Subang
-        </p>
+      {/* Page Title & School Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-[var(--admin-card-bg)] border border-[var(--admin-card-border)] shadow-xs">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-[var(--admin-bg-secondary)] border border-[var(--admin-border)] p-2 flex items-center justify-center shrink-0 shadow-xs">
+            <Image
+              src="/images/logo-smkn-1-subang.png"
+              alt="Logo SMKN 1 Subang"
+              width={44}
+              height={44}
+              className="object-contain"
+              priority
+            />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl sm:text-2xl font-bold text-[var(--admin-fg)]">Dashboard CMS</h1>
+              <span className="px-2.5 py-0.5 text-[11px] font-bold tracking-wide rounded-full bg-[var(--admin-primary-light)] text-[var(--admin-primary)] dark:text-blue-300">
+                SMKN 1 SUBANG
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm text-[var(--admin-fg-muted)] mt-0.5">
+              Panel Manajemen Konten &amp; Layanan Terpadu NESAS
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Metrics Grid */}

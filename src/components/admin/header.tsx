@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Menu, Sun, Moon, LogOut, User } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -73,7 +75,7 @@ export function AdminHeader({ onToggleMobileSidebar }: HeaderProps) {
   return (
     <header className="admin-header flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30">
       {/* Left: Mobile menu + Breadcrumb */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         <button
           onClick={onToggleMobileSidebar}
           className="lg:hidden p-2 rounded-lg hover:bg-[var(--admin-bg-secondary)] transition-colors"
@@ -81,6 +83,21 @@ export function AdminHeader({ onToggleMobileSidebar }: HeaderProps) {
         >
           <Menu size={20} className="text-[var(--admin-fg)]" />
         </button>
+
+        {/* Mobile Brand Logo */}
+        <Link
+          href="/admin/dashboard"
+          className="lg:hidden flex items-center gap-2 pr-2.5 border-r border-[var(--admin-border)] shrink-0"
+        >
+          <Image
+            src="/images/logo-smkn-1-subang.png"
+            alt="Logo SMKN 1 Subang"
+            width={24}
+            height={24}
+            className="object-contain"
+          />
+          <span className="text-xs font-bold text-[var(--admin-fg)]">NESAS</span>
+        </Link>
 
         <div className="flex items-center gap-2 text-sm">
           <span className="text-[var(--admin-fg-muted)]">Admin</span>
@@ -141,9 +158,17 @@ export function AdminHeader({ onToggleMobileSidebar }: HeaderProps) {
                   <p className="text-xs text-[var(--admin-fg-muted)] truncate">{displayEmail}</p>
                 </div>
                 <div className="p-1">
-                  <div className="flex items-center gap-2 w-full px-3 py-2 text-xs text-[var(--admin-fg-muted)]">
-                    <User size={15} />
-                    <span>Administrator</span>
+                  <div className="flex items-center gap-2.5 w-full px-3 py-2 text-xs text-[var(--admin-fg-muted)]">
+                    <div className="w-4 h-4 relative shrink-0">
+                      <Image
+                        src="/images/logo-smkn-1-subang.png"
+                        alt="Logo SMKN 1 Subang"
+                        width={16}
+                        height={16}
+                        className="object-contain"
+                      />
+                    </div>
+                    <span className="truncate">Admin &bull; SMKN 1 Subang</span>
                   </div>
                   <button
                     onClick={handleLogout}
