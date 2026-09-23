@@ -1,89 +1,50 @@
 import Link from 'next/link';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight, Bell, ChevronRight } from 'lucide-react';
 import { HeroSection } from '@/components/home/HeroSection';
 
-const PROGRAMS = [
-  'Akuntansi dan Keuangan Lembaga',
-  'Pemasaran',
-  'Manajemen Perkantoran dan Layanan Bisnis',
-  'Pengembangan Perangkat Lunak dan Gim',
-  'Teknik Jaringan Komputer dan Telekomunikasi',
-  'Teknik Otomotif',
-  'Desain Komunikasi Visual',
-  'Teknik Mesin',
-  'Kuliner',
-  'Teknik Logistik',
+const announcements = [
+  ['INFO', 'Informasi penerimaan peserta didik baru', 'Jadwal dan ketentuan akan diperbarui melalui kanal resmi sekolah.'],
+  ['LAYANAN', 'Layanan informasi akademik dan sekolah', 'Temukan informasi jurusan, fasilitas, dan layanan sekolah dalam satu portal.'],
+  ['NESAI', 'Asisten informasi sekolah', 'NESAI akan membantu menjawab pertanyaan umum seputar SMKN 1 Subang.'],
 ];
 
-const FACILITIES = [
-  'Lab RPL', 'Lab TKJ', 'Lab MPLB', 'Lab Pemasaran', 'Lab DKV', 'Lab Otomotif',
-  'Lab AKL', 'Lab Kuliner', 'Lab Teknik Mesin', 'Lab Teknik Logistik',
+const programs = [
+  ['01', 'Akuntansi dan Keuangan Lembaga'], ['02', 'Pemasaran'], ['03', 'Manajemen Perkantoran dan Layanan Bisnis'], ['04', 'Pengembangan Perangkat Lunak dan Gim'], ['05', 'Teknik Jaringan Komputer dan Telekomunikasi'], ['06', 'Desain Komunikasi Visual'],
+];
+
+const news = [
+  ['Informasi sekolah', 'Informasi dan pengumuman resmi akan dipublikasikan pada halaman berita.', 'Berita'],
+  ['Program keahlian', 'Kenali pilihan bidang keahlian dan fasilitas praktik yang tersedia.', 'Jurusan'],
+  ['Penerimaan peserta didik baru', 'Pantau pembaruan prosedur dan ketentuan PPDB melalui kanal resmi.', 'PPDB'],
 ];
 
 export default function HomePage() {
-  return (
-    <main className="bg-[#f8faf8] text-[#172b3a] selection:bg-[#e7ae32] selection:text-[#172b3a]">
-      <HeroSection />
+  return <main className="bg-[#f8fafc] text-[#172b3a] selection:bg-[#e7ae32] selection:text-[#172b3a]">
+    <HeroSection />
 
-      <section className="border-y border-[#d9e2de] bg-white">
-        <div className="mx-auto grid max-w-7xl gap-8 px-5 py-12 sm:px-8 lg:grid-cols-[1fr_2fr] lg:gap-16 lg:py-16">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#657c7d]">Tentang NESAS</p>
-          <div>
-            <p className="max-w-3xl font-serif text-3xl leading-tight tracking-[-0.025em] sm:text-4xl">
-              SMKN 1 Subang adalah ruang untuk belajar melalui praktik, membangun karakter, dan menemukan bidang keahlian yang tepat.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-x-10 gap-y-4 text-sm text-[#5d6a6e]">
-              <span><b className="font-semibold text-[#172b3a]">2.589</b> siswa aktif</span>
-              <span><b className="font-semibold text-[#172b3a]">159</b> tenaga pendidik</span>
-              <span><b className="font-semibold text-[#172b3a]">10</b> program keahlian</span>
-              <span><b className="font-semibold text-[#172b3a]">50–52</b> ruang kelas</span>
-            </div>
+    <section className="border-b border-slate-200 bg-white py-16 sm:py-20">
+      <div className="mx-auto grid max-w-7xl gap-8 px-5 sm:px-8 lg:grid-cols-12 lg:gap-10">
+        <div className="lg:col-span-5">
+          <div className="overflow-hidden border border-slate-200 bg-white shadow-[0_10px_25px_-15px_rgba(15,30,54,0.18)]">
+            <div className="flex items-center justify-between bg-[#0f1e36] px-5 py-4 text-white"><span className="flex items-center gap-2 text-sm font-bold tracking-wide"><Bell className="h-4 w-4 text-amber-400" /> PENGUMUMAN SEKOLAH</span><span className="bg-amber-400 px-2 py-0.5 text-[10px] font-bold text-[#0f1e36]">TERKINI</span></div>
+            <div className="divide-y divide-slate-100">{announcements.map(([tag,title,desc]) => <Link key={tag} href="/berita" className="group flex gap-3 p-4 transition hover:bg-slate-50"><span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center border border-slate-200 bg-slate-50 text-[9px] font-bold tracking-wide text-[#315e68]">{tag}</span><span><b className="block text-sm leading-5 text-slate-800 transition group-hover:text-[#315e68]">{title}</b><span className="mt-1 block text-xs leading-5 text-slate-500">{desc}</span></span></Link>)}</div>
+            <Link href="/berita" className="flex items-center justify-center gap-1 border-t border-slate-200 bg-slate-50 px-4 py-3 text-xs font-bold tracking-wide text-[#0f1e36] hover:text-amber-700">LIHAT SEMUA PENGUMUMAN <ChevronRight className="h-3 w-3" /></Link>
           </div>
         </div>
-      </section>
-
-      <section className="mx-auto grid max-w-7xl gap-12 px-5 py-20 sm:px-8 lg:grid-cols-[0.7fr_1.3fr] lg:gap-20 lg:py-28">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#657c7d]">Program keahlian</p>
-          <h2 className="mt-5 font-serif text-4xl leading-none tracking-[-0.035em] sm:text-5xl">Belajar dari apa yang ingin kamu kuasai.</h2>
-          <p className="mt-6 max-w-sm text-base leading-7 text-[#5d6a6e]">Setiap program dirancang untuk mempertemukan dasar pengetahuan, latihan praktik, dan kesiapan melangkah setelah lulus.</p>
-          <Link href="/jurusan" className="mt-9 inline-flex items-center gap-2 border-b-2 border-[#e7ae32] pb-1 text-sm font-semibold">Lihat seluruh jurusan <ArrowUpRight className="h-4 w-4" /></Link>
+        <div className="lg:col-span-7">
+          <div className="border border-slate-200 bg-white p-6 sm:p-8"><div className="flex items-center gap-3 border-b-2 border-amber-400 pb-4"><h2 className="font-school-heading text-xl font-bold text-[#0f1e36]">Sambutan Kepala Sekolah</h2><span className="h-1.5 w-1.5 rounded-full bg-amber-400" /></div><div className="mt-7 grid gap-6 sm:grid-cols-[150px_1fr]"><div><div className="aspect-[3/4] bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=600&q=80')" }} /><p className="mt-3 text-sm font-bold text-slate-900">Walyati Retnoningsih, S.Si., M.AP</p><p className="text-xs font-semibold text-amber-700">Kepala SMKN 1 Subang</p></div><div className="text-sm leading-7 text-slate-600"><p className="font-semibold text-slate-800">Assalamu’alaikum Warahmatullahi Wabarakatuh,</p><p className="mt-3">Selamat datang di portal SMKN 1 Subang. Portal ini dirancang untuk memudahkan siswa, orang tua, calon peserta didik, dan masyarakat menemukan informasi sekolah secara jelas dan terarah.</p><p className="mt-3">Kami terus mengembangkan pendidikan vokasi yang membangun karakter, keterampilan, serta kesiapan untuk beradaptasi dengan perubahan zaman.</p><Link href="/profil" className="mt-5 inline-flex items-center gap-1 border-b-2 border-amber-400 pb-1 text-xs font-bold text-[#0f1e36]">BACA PROFIL SEKOLAH <ArrowUpRight className="h-3.5 w-3.5" /></Link></div></div></div>
         </div>
-        <ol className="border-t border-[#b9c7c2]">
-          {PROGRAMS.map((program, index) => (
-            <li key={program} className="group grid grid-cols-[2.5rem_1fr_auto] items-center gap-3 border-b border-[#d9e2de] py-4 sm:py-5">
-              <span className="text-xs tabular-nums text-[#7a908e]">{String(index + 1).padStart(2, '0')}</span>
-              <span className="font-serif text-xl leading-tight transition group-hover:translate-x-1 sm:text-2xl">{program}</span>
-              <ArrowUpRight className="h-4 w-4 text-[#7a908e] transition group-hover:text-[#172b3a]" />
-            </li>
-          ))}
-        </ol>
-      </section>
+      </div>
+    </section>
 
-      <section className="bg-[#dfe9e5] py-20 lg:py-28">
-        <div className="mx-auto grid max-w-7xl gap-10 px-5 sm:px-8 lg:grid-cols-[1.25fr_0.75fr] lg:items-end lg:gap-16">
-          <div className="min-h-[380px] bg-cover bg-center sm:min-h-[500px]" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1498243691581-b145c3f54a5a?auto=format&fit=crop&w=1400&q=85')" }} />
-          <div className="pb-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#657c7d]">Fasilitas belajar</p>
-            <h2 className="mt-5 font-serif text-4xl leading-none tracking-[-0.035em] sm:text-5xl">Ruang untuk mencoba dan mencipta.</h2>
-            <p className="mt-6 text-base leading-7 text-[#516064]">Kegiatan praktik didukung ruang kelas, laboratorium kejuruan, dan area pembelajaran yang berkembang bersama kebutuhan setiap program.</p>
-            <div className="mt-8 grid grid-cols-2 gap-x-5 gap-y-3 border-t border-[#aebfba] pt-6 text-sm text-[#33494d]">
-              {FACILITIES.map((facility) => <span key={facility} className="border-b border-[#c6d4cf] pb-2">{facility}</span>)}
-            </div>
-            <Link href="/fasilitas" className="mt-8 inline-flex items-center gap-2 border-b-2 border-[#e7ae32] pb-1 text-sm font-semibold">Jelajahi fasilitas <ArrowUpRight className="h-4 w-4" /></Link>
-          </div>
-        </div>
-      </section>
+    <section className="border-b border-slate-200 bg-slate-50 py-20 sm:py-28"><div className="mx-auto grid max-w-7xl gap-12 px-5 sm:px-8 lg:grid-cols-12 lg:items-start"><div className="lg:col-span-5"><p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-700">Vokasi yang relevan</p><h2 className="font-school-heading mt-4 text-4xl font-bold leading-tight tracking-[-0.03em] text-[#0f1e36] sm:text-5xl">Jejak kemitraan strategis dan pembelajaran berbasis praktik.</h2><p className="mt-6 max-w-md text-base leading-7 text-slate-600">Pembelajaran di SMKN 1 Subang menghubungkan pengetahuan di kelas, kegiatan laboratorium, dan kesiapan memasuki dunia kerja.</p><Link href="/fasilitas" className="home-link mt-8 inline-flex items-center gap-2 border-b-2 border-amber-400 pb-1 text-sm font-bold text-[#0f1e36]">JELAJAHI FASILITAS <ArrowUpRight className="h-4 w-4" /></Link></div><div className="lg:col-span-7"><div className="grid overflow-hidden border border-slate-200 bg-white sm:grid-cols-2"><div className="min-h-[280px] bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=900&q=85')" }} /><div className="p-7"><span className="text-xs font-bold uppercase tracking-[0.16em] text-amber-700">Pembelajaran vokasi</span><h3 className="font-school-heading mt-4 text-2xl font-bold text-[#0f1e36]">Ruang belajar yang dekat dengan praktik.</h3><p className="mt-4 text-sm leading-6 text-slate-600">Laboratorium dan ruang praktik disiapkan untuk mendukung setiap program keahlian.</p><div className="mt-7 grid grid-cols-2 gap-3 text-xs text-slate-600"><span className="border-l-2 border-amber-400 pl-3">10 program keahlian</span><span className="border-l-2 border-amber-400 pl-3">10 kelompok laboratorium</span></div></div></div></div></div></section>
 
-      <section className="mx-auto max-w-7xl px-5 py-20 sm:px-8 lg:py-28">
-        <div className="grid gap-8 border-y border-[#b9c7c2] py-12 lg:grid-cols-[1fr_auto] lg:items-end">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#657c7d]">Penerimaan peserta didik baru</p>
-            <h2 className="mt-5 max-w-2xl font-serif text-4xl leading-none tracking-[-0.035em] sm:text-5xl">Mulai perjalanan belajarmu bersama SMKN 1 Subang.</h2>
-          </div>
-          <Link href="/ppdb" className="inline-flex w-fit items-center gap-2 bg-[#172b3a] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#2e5661]">Informasi PPDB <ArrowUpRight className="h-4 w-4" /></Link>
-        </div>
-      </section>
-    </main>
-  );
+    <section className="border-b border-slate-200 bg-white"><div className="mx-auto grid max-w-7xl grid-cols-2 divide-x divide-slate-200 px-5 sm:grid-cols-4 sm:px-8">{[['2.589','SISWA AKTIF'],['159','TENAGA PENDIDIK'],['10','PROGRAM KEAHLIAN'],['50–52','RUANG KELAS']].map(([number,label]) => <div key={label} className="py-8 text-center sm:py-11"><b className="font-school-heading block text-3xl font-bold text-[#0f1e36] sm:text-4xl">{number}</b><span className="mt-2 block text-[10px] font-bold tracking-[0.13em] text-slate-500">{label}</span></div>)}</div></section>
+
+    <section className="py-20 sm:py-28"><div className="mx-auto grid max-w-7xl gap-12 px-5 sm:px-8 lg:grid-cols-12"><div className="lg:col-span-4"><p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-700">Program keahlian</p><h2 className="font-school-heading mt-4 text-4xl font-bold leading-tight tracking-[-0.03em] text-[#0f1e36]">Temukan bidang yang ingin kamu kuasai.</h2><p className="mt-5 text-sm leading-7 text-slate-600">Pilih bidang yang sesuai minat, lalu pelajari kompetensi dan fasilitas pendukungnya.</p><Link href="/jurusan" className="home-link mt-8 inline-flex items-center gap-2 border-b-2 border-amber-400 pb-1 text-sm font-bold text-[#0f1e36]">SEMUA JURUSAN <ArrowUpRight className="h-4 w-4" /></Link></div><div className="lg:col-span-8"><div className="border-t border-slate-300">{programs.map(([number,name]) => <Link key={number} href="/jurusan" className="group grid grid-cols-[3rem_1fr_auto] items-center gap-3 border-b border-slate-200 px-1 py-5 transition hover:bg-slate-50"><span className="text-xs font-semibold text-slate-400">{number}</span><span className="font-school-heading text-lg font-semibold text-[#0f1e36] transition group-hover:translate-x-1 sm:text-xl">{name}</span><span className="flex h-8 w-8 items-center justify-center border border-slate-300 text-slate-500 transition group-hover:border-amber-400 group-hover:bg-amber-400 group-hover:text-[#0f1e36]"><ArrowUpRight className="h-4 w-4" /></span></Link>)}</div></div></div></section>
+
+    <section className="bg-[#0f1e36] py-20 text-white sm:py-24"><div className="mx-auto max-w-7xl px-5 sm:px-8"><div className="flex flex-col justify-between gap-6 border-b border-white/20 pb-8 sm:flex-row sm:items-end"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-400">Kabar sekolah</p><h2 className="font-school-heading mt-4 text-3xl font-bold sm:text-4xl">Berita, agenda, dan siaran resmi.</h2></div><Link href="/berita" className="inline-flex items-center gap-2 text-sm font-bold text-white hover:text-amber-300">LIHAT SEMUA BERITA <ArrowUpRight className="h-4 w-4" /></Link></div><div className="mt-8 grid gap-5 md:grid-cols-3">{news.map(([title,desc,tag]) => <Link key={tag} href="/berita" className="group border border-white/15 bg-white/[0.03] p-5 transition hover:-translate-y-1 hover:border-amber-400 hover:bg-white/[0.06]"><span className="text-[10px] font-bold tracking-[0.15em] text-amber-400">{tag.toUpperCase()}</span><h3 className="font-school-heading mt-4 text-xl font-semibold leading-snug">{title}</h3><p className="mt-3 text-sm leading-6 text-slate-300">{desc}</p><span className="mt-6 inline-flex items-center gap-1 text-xs font-bold">BACA SELENGKAPNYA <ArrowUpRight className="h-3.5 w-3.5" /></span></Link>)}</div></div></section>
+
+    <section className="bg-white py-20 sm:py-28"><div className="mx-auto grid max-w-7xl gap-8 border-y border-slate-300 px-5 py-12 sm:px-8 lg:grid-cols-[1fr_auto] lg:items-end"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-700">Penerimaan peserta didik baru</p><h2 className="font-school-heading mt-4 max-w-2xl text-4xl font-bold leading-tight tracking-[-0.03em] text-[#0f1e36] sm:text-5xl">Mulai perjalanan belajarmu bersama SMKN 1 Subang.</h2><p className="mt-5 max-w-xl text-sm leading-6 text-slate-600">Dapatkan informasi awal tentang program keahlian dan proses penerimaan peserta didik baru.</p></div><Link href="/ppdb" className="inline-flex items-center justify-center gap-2 bg-[#0f1e36] px-6 py-4 text-sm font-bold text-white transition hover:-translate-y-1 hover:bg-[#1e355b] hover:shadow-lg">INFORMASI PPDB <ArrowUpRight className="h-4 w-4" /></Link></div></section>
+  </main>;
 }

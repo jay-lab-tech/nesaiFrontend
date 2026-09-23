@@ -1,5 +1,6 @@
 'use client';
 
+import { useSyncExternalStore } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { ChatMessage } from '@/types/nesai';
@@ -10,7 +11,16 @@ interface NesaiMessageItemProps {
   message: ChatMessage;
 }
 
+const subscribeToHydration = () => () => {};
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
+
 export function NesaiMessageItem({ message }: NesaiMessageItemProps) {
+  const isMounted = useSyncExternalStore(
+    subscribeToHydration,
+    getClientSnapshot,
+    getServerSnapshot,
+  );
   const isUser = message.sender === 'user';
   const isError = message.isError;
 
@@ -68,10 +78,13 @@ export function NesaiMessageItem({ message }: NesaiMessageItemProps) {
 
         {/* Timestamp */}
         <span className={`nesai-timestamp ${isUser ? 'nesai-timestamp-user' : ''}`}>
-          {new Date(message.createdAt).toLocaleTimeString('id-ID', {
-            hour: '2-digit',
-            minute: '2-digit',
-          })}
+          {isMounted
+            ? new Intl.DateTimeFormat('id-ID', {
+                timeZone: 'Asia/Jakarta',
+                hour: '2-digit',
+                minute: '2-digit',
+              }).format(new Date(message.createdAt))
+            : '--:--'}
         </span>
       </div>
     </div>
