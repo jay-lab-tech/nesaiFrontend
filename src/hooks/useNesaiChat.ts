@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect, startTransition } from 'react';
+import { useState, useCallback, useEffect, useRef, startTransition } from 'react';
 import { ChatMessage } from '@/types/nesai';
 import { sendNesaiMessage } from '@/lib/api/nesai';
 
@@ -10,7 +10,7 @@ const WELCOME_MESSAGE: ChatMessage = {
   id: 'welcome',
   sender: 'nesai',
   text: 'Halo! Saya **NESAI**, asisten virtual SMKN 1 Subang. 👋\n\nAda yang bisa saya bantu terkait jurusan, PPDB, atau info sekolah lainnya?',
-  createdAt: new Date().toISOString(),
+  createdAt: '',
 };
 
 function loadMessagesFromSession(): ChatMessage[] | null {
@@ -39,19 +39,31 @@ export function useNesaiChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const isInitialized = useRef(false);
 
-  // Restore messages from sessionStorage on mount
+  // Restore messages from sessionStorage on mount or initialize timestamp
   useEffect(() => {
     const stored = loadMessagesFromSession();
     if (stored && stored.length > 0) {
       startTransition(() => {
         setMessages(stored);
       });
+    } else {
+      startTransition(() => {
+        setMessages([
+          {
+            ...WELCOME_MESSAGE,
+            createdAt: new Date().toISOString(),
+          },
+        ]);
+      });
     }
+    isInitialized.current = true;
   }, []);
 
-  // Persist messages to sessionStorage on change
+  // Persist messages to sessionStorage on change (skip initial mount to prevent overwriting stored session)
   useEffect(() => {
+    if (!isInitialized.current) return;
     saveMessagesToSession(messages);
   }, [messages]);
 

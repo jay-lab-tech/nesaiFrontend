@@ -3,6 +3,8 @@
 import { usePathname } from "next/navigation";
 import { Menu, Sun, Moon, LogOut, User } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 
 interface HeaderProps {
   onToggleMobileSidebar: () => void;
@@ -27,6 +29,7 @@ const ROUTE_LABELS: Record<string, string> = {
 
 export function AdminHeader({ onToggleMobileSidebar }: HeaderProps) {
   const pathname = usePathname();
+  const { user, logout } = useAdminAuth();
   const [isDark, setIsDark] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
@@ -51,6 +54,21 @@ export function AdminHeader({ onToggleMobileSidebar }: HeaderProps) {
     document.documentElement.classList.toggle("dark", next);
     localStorage.setItem("admin-theme", next ? "dark" : "light");
   };
+
+  const handleLogout = async () => {
+    setShowUserMenu(false);
+    toast.loading("Mengakhiri sesi admin...", { id: "logout-action" });
+    try {
+      await logout();
+      toast.success("Berhasil keluar dari panel CMS", { id: "logout-action" });
+    } catch {
+      toast.error("Gagal logout, membersihkan sesi lokal...", { id: "logout-action" });
+    }
+  };
+
+  const displayName = user?.name || "Administrator CMS";
+  const displayEmail = user?.email || "admin@smkn1subang.sch.id";
+  const initialLetter = displayName.charAt(0).toUpperCase() || "A";
 
   return (
     <header className="admin-header flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30">
@@ -103,11 +121,11 @@ export function AdminHeader({ onToggleMobileSidebar }: HeaderProps) {
             onClick={() => setShowUserMenu(!showUserMenu)}
             className="flex items-center gap-2 p-2 rounded-lg hover:bg-[var(--admin-bg-secondary)] transition-colors"
           >
-            <div className="w-8 h-8 rounded-full bg-[var(--admin-primary)] flex items-center justify-center text-white text-xs font-bold">
-              A
+            <div className="w-8 h-8 rounded-full bg-[var(--admin-primary)] flex items-center justify-center text-white text-xs font-bold shadow-xs">
+              {initialLetter}
             </div>
-            <span className="hidden md:block text-sm font-medium text-[var(--admin-fg)]">
-              Admin
+            <span className="hidden md:block text-sm font-medium text-[var(--admin-fg)] max-w-[120px] truncate">
+              {displayName}
             </span>
           </button>
 
@@ -117,19 +135,22 @@ export function AdminHeader({ onToggleMobileSidebar }: HeaderProps) {
                 className="fixed inset-0 z-40"
                 onClick={() => setShowUserMenu(false)}
               />
-              <div className="absolute right-0 top-full mt-2 w-48 bg-[var(--admin-card-bg)] border border-[var(--admin-border)] rounded-xl shadow-lg z-50 overflow-hidden admin-animate-in">
+              <div className="absolute right-0 top-full mt-2 w-56 bg-[var(--admin-card-bg)] border border-[var(--admin-border)] rounded-xl shadow-lg z-50 overflow-hidden admin-animate-in">
                 <div className="p-3 border-b border-[var(--admin-border)]">
-                  <p className="text-sm font-medium text-[var(--admin-fg)]">Admin</p>
-                  <p className="text-xs text-[var(--admin-fg-muted)]">admin@smkn1subang.sch.id</p>
+                  <p className="text-sm font-medium text-[var(--admin-fg)] truncate">{displayName}</p>
+                  <p className="text-xs text-[var(--admin-fg-muted)] truncate">{displayEmail}</p>
                 </div>
                 <div className="p-1">
-                  <button className="flex items-center gap-2 w-full px-3 py-2 text-sm text-[var(--admin-fg)] hover:bg-[var(--admin-bg-secondary)] rounded-lg transition-colors">
-                    <User size={16} />
-                    Profil Saya
-                  </button>
-                  <button className="flex items-center gap-2 w-full px-3 py-2 text-sm text-[var(--admin-danger)] hover:bg-[var(--admin-danger-bg)] rounded-lg transition-colors">
+                  <div className="flex items-center gap-2 w-full px-3 py-2 text-xs text-[var(--admin-fg-muted)]">
+                    <User size={15} />
+                    <span>Administrator</span>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-[var(--admin-danger)] hover:bg-[var(--admin-danger-bg)] rounded-lg transition-colors cursor-pointer"
+                  >
                     <LogOut size={16} />
-                    Keluar
+                    Keluar Sesi
                   </button>
                 </div>
               </div>
@@ -140,3 +161,4 @@ export function AdminHeader({ onToggleMobileSidebar }: HeaderProps) {
     </header>
   );
 }
+

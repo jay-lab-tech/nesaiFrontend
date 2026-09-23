@@ -12,9 +12,24 @@ interface NesaiMessageItemProps {
   message: ChatMessage;
 }
 
+function formatTimestamp(dateInput?: Date | string): string {
+  if (!dateInput) return '';
+  try {
+    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+    if (isNaN(date.getTime())) return '';
+    return date.toLocaleTimeString('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch {
+    return '';
+  }
+}
+
 export function NesaiMessageItem({ message }: NesaiMessageItemProps) {
   const isUser = message.sender === 'user';
   const isError = message.isError;
+  const formattedTime = formatTimestamp(message.createdAt);
 
   return (
     <div
@@ -70,16 +85,16 @@ export function NesaiMessageItem({ message }: NesaiMessageItemProps) {
         )}
 
         {/* Timestamp */}
-        <span
-          className={`text-[10px] text-slate-400 dark:text-slate-500 mt-1 px-1 ${
-            isUser ? 'text-right' : 'text-left'
-          }`}
-        >
-          {new Date(message.createdAt).toLocaleTimeString('id-ID', {
-            hour: '2-digit',
-            minute: '2-digit',
-          })}
-        </span>
+        {formattedTime ? (
+          <span
+            suppressHydrationWarning
+            className={`text-[10px] text-slate-400 dark:text-slate-500 mt-1 px-1 ${
+              isUser ? 'text-right' : 'text-left'
+            }`}
+          >
+            {formattedTime}
+          </span>
+        ) : null}
       </div>
     </div>
   );

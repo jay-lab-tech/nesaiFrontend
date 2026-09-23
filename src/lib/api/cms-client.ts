@@ -1,4 +1,4 @@
-import type { ApiResponse, ApiPaginatedResponse, ApiErrorResponse } from "@/types/cms";
+import type { ApiResponse, ApiPaginatedResponse, ApiErrorResponse, AuthUser, LoginResponse } from "@/types/cms";
 
 // ── Configuration ──────────────────────────────────────────
 
@@ -7,7 +7,7 @@ const API_BASE_URL =
 
 const ADMIN_PREFIX = "/admin";
 
-// ── Token Management ───────────────────────────────────────
+// ── Token & User Storage Management ─────────────────────────
 
 export function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -22,6 +22,27 @@ export function setAuthToken(token: string): void {
 export function removeAuthToken(): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem("cms_auth_token");
+}
+
+export function getAuthUser(): AuthUser | null {
+  if (typeof window === "undefined") return null;
+  const raw = localStorage.getItem("cms_auth_user");
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as AuthUser;
+  } catch {
+    return null;
+  }
+}
+
+export function setAuthUser(user: AuthUser): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem("cms_auth_user", JSON.stringify(user));
+}
+
+export function removeAuthUser(): void {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem("cms_auth_user");
 }
 
 // ── Custom Error Class ─────────────────────────────────────
@@ -78,9 +99,24 @@ async function cmsApiFetch<T>(
     body: isFormData ? (body as BodyInit) : body ? JSON.stringify(body) : undefined,
   });
 
-  // Handle 401 Unauthorized — redirect to login
+  // Handle 401 Unauthorized
   if (response.status === 401) {
+    let errorMsg = "Email atau kata sandi tidak valid.";
+    try {
+      const errJson = await response.json();
+      errorMsg = errJson.message || errorMsg;
+    } catch {
+      // response is not json
+    }
+
+    // Do NOT redirect or clear tokens if the failed call was the login attempt itself
+    if (endpoint === "/auth/login") {
+      throw new ApiError(errorMsg, 401);
+    }
+
+    // Otherwise, session has expired for admin authenticated requests
     removeAuthToken();
+    removeAuthUser();
     if (typeof window !== "undefined") {
       window.location.href = "/admin/login";
     }
@@ -196,8 +232,8 @@ export async function apiPostFormData<T>(
 }
 
 /** Auth-specific: Login (no admin prefix) */
-export async function apiLogin<T>(data: unknown): Promise<T> {
-  return cmsApiFetch<T>("/auth/login", {
+export async function apiLogin(data: { email: string; password: string }): Promise<LoginResponse> {
+  return cmsApiFetch<LoginResponse>("/auth/login", {
     method: "POST",
     body: data,
     isAdmin: false,
@@ -206,14 +242,24 @@ export async function apiLogin<T>(data: unknown): Promise<T> {
 
 /** Auth-specific: Logout */
 export async function apiLogout(): Promise<void> {
-  await cmsApiFetch<void>("/auth/logout", { method: "POST" });
-  removeAuthToken();
+  try {
+    await cmsApiFetch<void>("/auth/logout", { method: "POST" });
+  } catch {
+    // Ignore error if token is already expired or server unreachable
+  } finally {
+    removeAuthToken();
+    removeAuthUser();
+    if (typeof window !== "undefined") {
+      window.location.href = "/admin/login";
+    }
+  }
 }
 
 /** Auth-specific: Get current user */
-export async function apiGetMe<T>(): Promise<T> {
-  return cmsApiFetch<T>("/auth/me", { method: "GET" });
+export async function apiGetMe(): Promise<ApiResponse<AuthUser>> {
+  return cmsApiFetch<ApiResponse<AuthUser>>("/auth/me", { method: "GET" });
 }
 
 // Re-export types for convenience
-export type { ApiResponse, ApiPaginatedResponse, ApiErrorResponse };
+export type { ApiResponse, ApiPaginatedResponse, ApiErrorResponse, AuthUser, LoginResponse };
+
