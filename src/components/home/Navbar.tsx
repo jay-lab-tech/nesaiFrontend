@@ -9,7 +9,7 @@ import { ChevronDown, ArrowUpRight } from 'lucide-react';
 const NAV_LINKS = [
   { label: 'Profil Sekolah', href: '/profil', menu: [{ label: 'Profil & sejarah', href: '/profil' }, { label: 'Visi & misi', href: '/profil#visi-misi' }, { label: 'Tenaga pendidik', href: '/profil#tenaga-pendidik' }] },
   { label: 'Berita', href: '/berita', menu: [{ label: 'Berita terbaru', href: '/berita' }, { label: 'Pengumuman sekolah', href: '/berita#pengumuman' }, { label: 'Agenda kegiatan', href: '/berita#agenda' }] },
-  { label: 'Layanan', href: '/fasilitas', menu: [{ label: 'Program keahlian', href: '/jurusan' }, { label: 'Fasilitas sekolah', href: '/fasilitas' }, { label: 'Informasi PPDB', href: '/ppdb' }] },
+  { label: 'Layanan', href: '/fasilitas', menu: [{ label: 'Program keahlian', href: '/jurusan' }, { label: 'Fasilitas sekolah', href: '/fasilitas' }, { label: 'Informasi PPDB', href: '/ppdb' }, { label: 'Tanya NesAI (Asisten)', href: '/tanya-nesai' }] },
   { label: 'Prestasi', href: '/prestasi' },
   { label: 'Jurusan', href: '/jurusan' },
   { label: 'Kontak', href: '/kontak' },
@@ -20,6 +20,7 @@ export function Navbar() {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const pathname = usePathname();
   const isHome = pathname === '/';
+  const isNesai = pathname === '/tanya-nesai' || pathname === '/nesai';
   const tone = isHome ? 'text-white hover:text-white/80' : 'text-[#253b49] hover:text-[#54778c]';
   const navUnderline = isHome ? 'after:bg-white' : 'after:bg-[#e7ae32]';
 
@@ -34,7 +35,7 @@ export function Navbar() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-7 lg:flex">
+        <nav className="hidden items-center gap-6 lg:flex">
           {NAV_LINKS.map((link) => (
             <div key={link.href} className="relative" onMouseEnter={() => link.menu && setActiveDropdown(link.label)} onMouseLeave={() => setActiveDropdown(null)}>
               <Link href={link.href} onFocus={() => link.menu && setActiveDropdown(link.label)} className={`relative inline-flex items-center gap-1 pb-2 text-sm font-semibold transition-colors after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:transition-[width] after:duration-300 hover:after:w-full ${navUnderline} ${pathname === link.href ? `${isHome ? 'text-white after:w-full' : 'text-[#172b3a] after:w-full'}` : tone}`}>
@@ -47,6 +48,25 @@ export function Navbar() {
               )}
             </div>
           ))}
+
+          {/* Tombol Khusus Tanya NesAI di Desktop */}
+          <Link
+            href="/tanya-nesai"
+            className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-bold transition shadow-2xs ${
+              isHome
+                ? 'border-emerald-400/40 bg-emerald-500/15 hover:bg-emerald-500/25 text-white'
+                : isNesai
+                ? 'border-[#172b3a] bg-[#172b3a] text-white shadow-xs'
+                : 'border-[#dce5e1] bg-white hover:bg-[#edf3f0] hover:border-[#b9c7c2] text-[#172b3a]'
+            }`}
+          >
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            </span>
+            <span className="font-school-heading tracking-tight">Tanya NesAI</span>
+          </Link>
+
           <Link href="/ppdb" className={`inline-flex items-center gap-1 border-b pb-1 text-sm font-semibold ${isHome ? 'border-[#f5b51b] text-white' : 'border-[#e7ae32] text-[#172b3a]'}`}>PPDB</Link>
           <span className={`border-l pl-4 text-sm font-semibold ${isHome ? 'border-white/35 text-white' : 'border-[#cbd7d3] text-[#172b3a]'}`}>ID</span>
         </nav>
@@ -64,7 +84,31 @@ export function Navbar() {
             <p className={`mb-3 text-[10px] font-semibold uppercase tracking-[0.2em] ${isHome ? 'text-white/55' : 'text-[#758b89]'}`}>Menu</p>
             <Link href="/" onClick={() => setMobileMenuOpen(false)} className={`flex items-center justify-between border-t py-3.5 text-base font-semibold ${isHome ? 'border-white/15 text-white' : 'border-[#dce5e1] text-[#172b3a]'}`}>Beranda <ArrowUpRight className="h-4 w-4" /></Link>
             {NAV_LINKS.map((link) => <Link key={link.href} href={link.href} onClick={() => setMobileMenuOpen(false)} className={`flex items-center justify-between border-t py-3.5 text-base font-semibold ${isHome ? 'border-white/15 text-white' : 'border-[#dce5e1] text-[#172b3a]'}`}>{link.label}<ArrowUpRight className="h-4 w-4" /></Link>)}
-            <Link href="/ppdb" onClick={() => setMobileMenuOpen(false)} className={`mt-5 flex items-center justify-center gap-2 py-3.5 text-sm font-bold ${isHome ? 'bg-[#f5b51b] text-[#102d43]' : 'bg-[#172b3a] text-white'}`}>Informasi PPDB <ArrowUpRight className="h-4 w-4" /></Link>
+
+            {/* Navigasi Khusus NesAI di Menu Mobile */}
+            <Link
+              href="/tanya-nesai"
+              onClick={() => setMobileMenuOpen(false)}
+              className={`mt-4 flex items-center justify-between p-3.5 rounded-xl border transition shadow-xs ${
+                isHome
+                  ? 'border-emerald-400/30 bg-emerald-950/40 text-white'
+                  : 'border-[#dce5e1] bg-white text-[#172b3a] hover:bg-[#edf3f0]'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                </span>
+                <div className="flex flex-col text-left">
+                  <span className="text-sm font-bold font-school-heading">Tanya NesAI</span>
+                  <span className={`text-[10.5px] ${isHome ? 'text-emerald-300' : 'text-[#657c7d]'}`}>Asisten Virtual SMKN 1 Subang</span>
+                </div>
+              </div>
+              <ArrowUpRight className="h-4 w-4 text-[#e7ae32]" />
+            </Link>
+
+            <Link href="/ppdb" onClick={() => setMobileMenuOpen(false)} className={`mt-3 flex items-center justify-center gap-2 py-3.5 text-sm font-bold ${isHome ? 'bg-[#f5b51b] text-[#102d43]' : 'bg-[#172b3a] text-white'}`}>Informasi PPDB <ArrowUpRight className="h-4 w-4" /></Link>
           </div>
         </nav>
       )}

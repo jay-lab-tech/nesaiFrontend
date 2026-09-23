@@ -29,9 +29,9 @@ const QUICK_QUESTIONS = [
 
 export function NesaiQuickReplies({ onSelect, disabled }: NesaiQuickRepliesProps) {
   return (
-    <div className="px-3.5 py-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30">
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2 px-1">
-        Coba tanyakan:
+    <div className="px-4 py-3.5 border-t border-[#edf2ef] bg-[#fcfdfc]">
+      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#657c7d] mb-2.5 px-0.5">
+        Rekomendasi Pertanyaan:
       </p>
       <div className="flex flex-col gap-1.5">
         {QUICK_QUESTIONS.map((q, index) => {
@@ -43,9 +43,9 @@ export function NesaiQuickReplies({ onSelect, disabled }: NesaiQuickRepliesProps
               size="sm"
               disabled={disabled}
               onClick={() => onSelect(q.text)}
-              className="h-auto py-2 px-2.5 justify-start text-left font-normal bg-white dark:bg-slate-950 border-slate-200/80 hover:bg-blue-50/50 hover:border-blue-200 hover:text-blue-900 text-slate-700 dark:text-slate-200 dark:hover:text-blue-300 rounded-lg shadow-2xs group transition-all"
+              className="h-auto py-2.5 px-3 justify-start text-left font-medium bg-white border-[#dce5e1] hover:bg-[#edf3f0] hover:border-[#b9c7c2] text-[#172b3a] rounded-xl shadow-2xs group transition-all"
             >
-              <Icon className="h-3.5 w-3.5 mr-2 text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 shrink-0" />
+              <Icon className="h-3.5 w-3.5 mr-2 text-[#5d6a6e] group-hover:text-[#e7ae32] transition-colors shrink-0" />
               <span className="text-xs leading-snug">{q.text}</span>
             </Button>
           );

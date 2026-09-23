@@ -31,7 +31,7 @@ export function NesaiChatBody({
 
   return (
     <>
-      <div className={`flex-1 min-h-0 flex flex-col bg-slate-50/40 dark:bg-slate-900/20 overflow-hidden ${variant === 'fullpage' ? 'min-h-[300px]' : ''}`}>
+      <div className={`flex-1 min-h-0 flex flex-col bg-[#f8faf8] overflow-hidden ${variant === 'fullpage' ? 'min-h-0' : ''}`}>
         <NesaiMessageList messages={messages} isLoading={isLoading} />
 
         {showQuickReplies && (

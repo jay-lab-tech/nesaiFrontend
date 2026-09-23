@@ -49,14 +49,16 @@
 }
 
 .nesai-prose a {
-  color: #2563eb;
+  color: #172b3a;
   text-decoration: underline;
-  text-underline-offset: 2px;
-  font-weight: 500;
+  text-decoration-color: #e7ae32;
+  text-underline-offset: 3px;
+  font-weight: 600;
+  transition: color 150ms ease;
 }
 
 .nesai-prose a:hover {
-  color: #1d4ed8;
+  color: #e7ae32;
 }
 
 .nesai-prose code {
