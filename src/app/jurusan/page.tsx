@@ -28,6 +28,7 @@ interface MajorDetail {
   code: string;
   name: string;
   badge: string;
+  logo?: string | null;
   icon: React.ComponentType<{ className?: string }>;
   color: string;
   summary: string;
@@ -163,6 +164,7 @@ export default function JurusanPage() {
               code: fallbackItem?.code || m.name.substring(0, 4).toUpperCase(),
               name: m.name,
               badge: fallbackItem?.badge || 'Program Keahlian Vokasi',
+              logo: m.logo_url || m.logo || null,
               icon: fallbackItem?.icon || ICON_MAP[slugKey] || Network,
               color: fallbackItem?.color || COLOR_MAP[slugKey] || 'from-slate-700 to-slate-900',
               summary: m.summary || m.description || fallbackItem?.summary || '',
@@ -225,8 +227,19 @@ export default function JurusanPage() {
               >
                 <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6 mb-8 border-b border-slate-100 pb-6">
                   <div className="flex items-start gap-4">
-                    <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${major.color} text-white shadow-md`}>
-                      <Icon className="h-8 w-8 text-cyan-100" />
+                    <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${major.color} text-white shadow-md p-2 overflow-hidden`}>
+                      {major.logo ? (
+                        <img
+                          src={major.logo}
+                          alt={major.name}
+                          className="h-full w-full object-contain filter drop-shadow"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLElement).style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <Icon className="h-8 w-8 text-cyan-100" />
+                      )}
                     </div>
                     <div>
                       <div className="flex items-center gap-2 mb-1">

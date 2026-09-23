@@ -90,6 +90,8 @@ export interface Major {
   id: number;
   name: string;
   slug: string;
+  logo?: string | null;
+  logo_url?: string | null;
   summary?: string | null;
   description?: string | null;
   subjects?: MajorSubject[];

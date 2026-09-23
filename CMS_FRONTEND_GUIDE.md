@@ -80,6 +80,7 @@ Berdasarkan migration `2026_09_18_000100_create_nesas_content_tables.php` dan mo
 |---|---|---|---|---|
 | `name` | `string` | Tidak | Text Input | Nama jurusan (e.g. `Rekayasa Perangkat Lunak`) |
 | `slug` | `string` (unique) | Tidak | Slug Input | Auto-generate dari nama: `rekayasa-perangkat-lunak` |
+| `logo` | `string` | Ya | Image/URL Input + Preview | URL / file path logo atau lambang jurusan |
 | `summary` | `text` | Ya | Textarea | Ringkasan singkat profil jurusan |
 | `description` | `longText` | Ya | Rich / Markdown Editor | Kurikulum lengkap, fasilitas bengkel, dan kompetensi |
 

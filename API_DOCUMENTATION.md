@@ -160,7 +160,7 @@ Endpoint ini bersifat **Read-Only (GET)** dan tidak membutuhkan header otentikas
 | **Ekstrakurikuler** | `GET` | `/extracurriculars` | `category` | Mengambil seluruh daftar ekstrakurikuler. |
 | **Karya Inovasi** | `GET` | `/innovations` | - | Mengambil daftar karya inovasi siswa/guru beserta jurusan terkait. |
 | **Statistik Siswa** | `GET` | `/admission-stats` | - | Mengambil data statistik penerimaan siswa per tahun. |
-| **Pelacakan Alumni** | `GET` | `/alumni-tracking-stats` | - | Mengambil statistik kelulusan alumni (bekerja, wirausaha, kuliah). |
+| **Pelacakan Alumni** | `GET` | `/alumni-tracking-stats` | - | Mengambil statistik kelulusan alumni (bekerja, wirausaha, kuliah). |w
 | **Direktori Alumni** | `GET` | `/alumni` | - | Mengambil daftar alumni sukses beserta headline dan cerita singkat. |
 | **Berita Sekolah** | `GET` | `/news` | `page`, `per_page`, `search` | Mengambil daftar berita yang sudah terbit (`published_at <= now`), terurut dari yang terbaru (Paginated). |
 | **Detail Berita** | `GET` | `/news/{slug}` | - | Mengambil isi detail berita berdasarkan slug. |
@@ -240,6 +240,7 @@ Manajemen kompetensi keahlian beserta mata pelajaran dan prospek karir.
     {
       "name": "Rekayasa Perangkat Lunak",
       "slug": "rekayasa-perangkat-lunak",
+      "logo": "https://example.com/storage/majors/rpl.png",
       "summary": "Mempelajari pengembangan software, web, dan mobile application.",
       "description": "Program keahlian RPL membekali siswa dengan logika pemrograman, UI/UX, dan database.",
       "subjects": [

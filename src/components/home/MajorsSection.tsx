@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   Network, 
@@ -13,21 +14,35 @@ import {
   Sparkles 
 } from 'lucide-react';
 import { openNesaiChat } from '@/lib/nesai-events';
+import { publicService, unwrapList } from '@/lib/api/public-endpoints';
+import type { Major } from '@/types/cms';
 
 interface MajorItem {
   id: string;
+  slug: string;
   code: string;
   name: string;
-  icon: React.ComponentType<{ className?: string }>;
+  logo?: string | null;
+  icon?: React.ComponentType<{ className?: string }>;
   description: string;
   colorClass: string;
   iconBg: string;
   promptQuestion: string;
 }
 
+const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  tkj: Network,
+  rpl: Code2,
+  dkv: Palette,
+  toi: Cpu,
+  bdp: TrendingUp,
+  akl: Calculator,
+};
+
 const MAJORS: MajorItem[] = [
   {
     id: 'tkj',
+    slug: 'tkj',
     code: 'TKJ',
     name: 'Teknik Komputer & Jaringan',
     icon: Network,
@@ -38,6 +53,7 @@ const MAJORS: MajorItem[] = [
   },
   {
     id: 'rpl',
+    slug: 'rpl',
     code: 'RPL',
     name: 'Rekayasa Perangkat Lunak',
     icon: Code2,
@@ -48,6 +64,7 @@ const MAJORS: MajorItem[] = [
   },
   {
     id: 'dkv',
+    slug: 'dkv',
     code: 'DKV',
     name: 'Multimedia & Desain Komunikasi Visual',
     icon: Palette,
@@ -58,6 +75,7 @@ const MAJORS: MajorItem[] = [
   },
   {
     id: 'toi',
+    slug: 'toi',
     code: 'TOI',
     name: 'Teknik Otomasi Industri',
     icon: Cpu,
@@ -68,6 +86,7 @@ const MAJORS: MajorItem[] = [
   },
   {
     id: 'bdp',
+    slug: 'bdp',
     code: 'BDP',
     name: 'Bisnis Digital & Pemasaran',
     icon: TrendingUp,
@@ -78,6 +97,7 @@ const MAJORS: MajorItem[] = [
   },
   {
     id: 'akl',
+    slug: 'akl',
     code: 'AKL',
     name: 'Akuntansi & Keuangan Lembaga',
     icon: Calculator,
@@ -89,6 +109,37 @@ const MAJORS: MajorItem[] = [
 ];
 
 export function MajorsSection() {
+  const [majorsList, setMajorsList] = useState<MajorItem[]>(MAJORS);
+
+  useEffect(() => {
+    publicService.getMajors()
+      .then((res) => {
+        const apiMajors = unwrapList<Major>(res);
+        if (apiMajors.length > 0) {
+          const mapped: MajorItem[] = apiMajors.map((m) => {
+            const slugKey = m.slug.toLowerCase();
+            const fallbackItem = MAJORS.find(
+              (d) => d.slug === slugKey || d.id === slugKey || m.name.toLowerCase().includes(d.id)
+            );
+            return {
+              id: m.slug,
+              slug: m.slug,
+              code: fallbackItem?.code || m.name.substring(0, 4).toUpperCase(),
+              name: m.name,
+              logo: m.logo_url || m.logo || null,
+              icon: fallbackItem?.icon || ICON_MAP[slugKey] || Network,
+              description: m.summary || m.description || fallbackItem?.description || '',
+              colorClass: fallbackItem?.colorClass || 'from-blue-600 to-cyan-600',
+              iconBg: fallbackItem?.iconBg || 'bg-blue-50 text-blue-600 border-blue-200',
+              promptQuestion: fallbackItem?.promptQuestion || `Bagaimana kurikulum dan prospek kerja jurusan ${m.name} di SMKN 1 Subang?`,
+            };
+          });
+          setMajorsList(mapped);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <section id="jurusan" className="py-24 bg-slate-50 relative overflow-hidden">
       {/* Background Decor */}
@@ -113,7 +164,7 @@ export function MajorsSection() {
 
         {/* Majors Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-          {MAJORS.map((major) => {
+          {majorsList.map((major) => {
             const Icon = major.icon;
             return (
               <div
@@ -121,10 +172,23 @@ export function MajorsSection() {
                 className="group relative flex flex-col justify-between rounded-2xl bg-white p-7 border border-slate-200/90 shadow-sm hover:shadow-xl hover:border-blue-300/80 transition-all duration-300 hover:-translate-y-1"
               >
                 <div>
-                  {/* Top bar with Icon & Code */}
+                  {/* Top bar with Icon/Logo & Code */}
                   <div className="flex items-center justify-between mb-5">
-                    <div className={`flex h-13 w-13 items-center justify-center rounded-xl border p-3 ${major.iconBg} shadow-sm group-hover:scale-110 transition-transform`}>
-                      <Icon className="h-7 w-7" />
+                    <div className={`flex h-13 w-13 items-center justify-center rounded-xl border p-2 ${major.iconBg} shadow-sm group-hover:scale-110 transition-transform overflow-hidden`}>
+                      {major.logo ? (
+                        <img
+                          src={major.logo}
+                          alt={major.name}
+                          className="h-full w-full object-contain filter drop-shadow-xs"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLElement).style.display = 'none';
+                          }}
+                        />
+                      ) : Icon ? (
+                        <Icon className="h-7 w-7" />
+                      ) : (
+                        <span className="text-xs font-black uppercase">{major.code}</span>
+                      )}
                     </div>
                     <span className="text-xs font-black tracking-widest text-slate-400 group-hover:text-blue-600 transition-colors uppercase">
                       {major.code}
@@ -133,7 +197,9 @@ export function MajorsSection() {
 
                   {/* Title & Desc */}
                   <h3 className="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors mb-2.5">
-                    {major.name}
+                    <Link href={`/jurusan/${major.slug}`} className="hover:underline">
+                      {major.name}
+                    </Link>
                   </h3>
                   <p className="text-sm text-slate-600 leading-relaxed mb-6">
                     {major.description}
@@ -145,14 +211,14 @@ export function MajorsSection() {
                   <button
                     type="button"
                     onClick={() => openNesaiChat(major.promptQuestion)}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-cyan-700 hover:text-cyan-900 hover:underline"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-cyan-700 hover:text-cyan-900 hover:underline cursor-pointer"
                   >
                     <Bot className="h-3.5 w-3.5 text-cyan-600" />
                     <span>Tanya NESAI</span>
                   </button>
 
                   <Link
-                    href={`/jurusan#${major.id}`}
+                    href={`/jurusan/${major.slug}`}
                     className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 group-hover:translate-x-1 transition-transform"
                   >
                     <span>Lihat Jurusan</span>

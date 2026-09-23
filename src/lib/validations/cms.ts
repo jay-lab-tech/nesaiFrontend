@@ -52,6 +52,7 @@ export const majorFormSchema = z.object({
     .string()
     .min(2, "Slug wajib diisi")
     .regex(/^[a-z0-9-]+$/, "Slug hanya boleh huruf kecil, angka, dan strip"),
+  logo: optionalString,
   summary: optionalString,
   description: optionalString,
 });

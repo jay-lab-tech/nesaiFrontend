@@ -73,19 +73,40 @@ export default function MajorsPage() {
     {
       key: "name",
       label: "Nama Jurusan",
-      render: (item: Major) => (
-        <div>
-          <Link
-            href={`/admin/majors/${item.id}`}
-            className="font-medium text-[var(--admin-primary)] hover:underline"
-          >
-            {item.name}
-          </Link>
-          <p className="text-xs text-[var(--admin-fg-subtle)] mt-0.5">
-            /{item.slug}
-          </p>
-        </div>
-      ),
+      render: (item: Major) => {
+        const logoSrc = item.logo_url || item.logo;
+        return (
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[var(--admin-border)] bg-[var(--admin-bg-secondary)] overflow-hidden shadow-2xs">
+              {logoSrc ? (
+                <img
+                  src={logoSrc}
+                  alt={item.name}
+                  className="h-full w-full object-contain p-1"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLElement).style.display = "none";
+                  }}
+                />
+              ) : (
+                <span className="text-[11px] font-black text-[var(--admin-fg-muted)] uppercase">
+                  {item.slug.substring(0, 3)}
+                </span>
+              )}
+            </div>
+            <div>
+              <Link
+                href={`/admin/majors/${item.id}`}
+                className="font-medium text-[var(--admin-primary)] hover:underline"
+              >
+                {item.name}
+              </Link>
+              <p className="text-xs text-[var(--admin-fg-subtle)] mt-0.5">
+                /{item.slug}
+              </p>
+            </div>
+          </div>
+        );
+      },
     },
     {
       key: "summary",

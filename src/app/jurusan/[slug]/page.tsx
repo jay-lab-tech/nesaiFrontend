@@ -107,8 +107,19 @@ export default function MajorDetailPage() {
 
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-start gap-4">
-              <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${pres.color} text-white shadow-md`}>
-                <Icon className="h-8 w-8 text-cyan-100" />
+              <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${pres.color} text-white shadow-md p-2 overflow-hidden`}>
+                {major.logo_url || major.logo ? (
+                  <img
+                    src={major.logo_url || major.logo!}
+                    alt={major.name}
+                    className="h-full w-full object-contain filter drop-shadow"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLElement).style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <Icon className="h-8 w-8 text-cyan-100" />
+                )}
               </div>
               <div>
                 <span className="text-xs font-bold tracking-widest text-cyan-400 uppercase">

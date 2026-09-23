@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useParams, useRouter } from "next/navigation";
-import { Save, ArrowLeft, Plus, X } from "lucide-react";
+import { Save, ArrowLeft, Plus, X, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,6 +20,7 @@ const DEFAULT_MAJOR = {
   id: 1,
   name: "Rekayasa Perangkat Lunak",
   slug: "rekayasa-perangkat-lunak",
+  logo: "",
   summary: "Mempelajari pengembangan aplikasi, web, dan mobile",
   description: "Program keahlian Rekayasa Perangkat Lunak (RPL) membekali siswa dengan kompetensi dalam merancang, mengembangkan, dan menguji perangkat lunak. Kurikulum mencakup pemrograman web, mobile, desktop, basis data, dan rekayasa perangkat lunak modern.",
 };
@@ -73,11 +74,12 @@ export default function MajorDetailPage() {
   } = useForm<MajorFormValues>({
     resolver: zodResolver(majorFormSchema) as any,
     defaultValues: isNew
-      ? { name: "", slug: "", summary: "", description: "" }
+      ? { name: "", slug: "", logo: "", summary: "", description: "" }
       : DEFAULT_MAJOR,
   });
 
   const nameValue = watch("name");
+  const logoValue = watch("logo");
 
   useEffect(() => {
     if (!isNew && params.id) {
@@ -89,6 +91,7 @@ export default function MajorDetailPage() {
             reset({
               name: m.name,
               slug: m.slug,
+              logo: m.logo || m.logo_url || "",
               summary: m.summary || "",
               description: m.description || "",
             });
@@ -218,6 +221,42 @@ export default function MajorDetailPage() {
                 </Button>
               </div>
             </FormField>
+          </div>
+
+          {/* Logo / Ikon Jurusan */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start p-4 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-bg-secondary)]/50">
+            <div className="md:col-span-3">
+              <FormField label="URL Logo / Ikon Jurusan" error={errors.logo?.message}>
+                <Input
+                  {...register("logo")}
+                  placeholder="e.g. /images/majors/rpl.png atau https://.../logo-rpl.png"
+                  className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-fg)]"
+                />
+                <p className="text-xs text-[var(--admin-fg-muted)] mt-1.5 flex items-center gap-1.5">
+                  <ImageIcon size={13} className="shrink-0 text-[var(--admin-primary)]" />
+                  Format yang disarankan: PNG transparan atau SVG dengan rasio 1:1 (persegi).
+                </p>
+              </FormField>
+            </div>
+            <div className="flex flex-col items-center justify-center p-3 rounded-lg border border-dashed border-[var(--admin-border)] bg-[var(--admin-bg)] min-h-[90px]">
+              <span className="text-[11px] font-semibold text-[var(--admin-fg-muted)] mb-1.5">Preview Logo</span>
+              {logoValue ? (
+                <div className="h-12 w-12 rounded-lg bg-white p-1 border border-slate-200 shadow-2xs flex items-center justify-center overflow-hidden">
+                  <img
+                    src={logoValue}
+                    alt="Preview Logo"
+                    className="h-full w-full object-contain"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLElement).style.display = 'none';
+                    }}
+                  />
+                </div>
+              ) : (
+                <div className="h-12 w-12 rounded-lg bg-[var(--admin-bg-secondary)] border border-[var(--admin-border)] flex items-center justify-center text-xs font-bold text-[var(--admin-fg-muted)] uppercase">
+                  {nameValue ? nameValue.substring(0, 3).toUpperCase() : "LOGO"}
+                </div>
+              )}
+            </div>
           </div>
 
           <FormField label="Ringkasan" error={errors.summary?.message}>
