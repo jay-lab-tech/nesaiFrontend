@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { CheckCircle2, Calendar, FileText, AlertCircle, ArrowUpRight } from 'lucide-react';
+import { CheckCircle2, Calendar, FileText, AlertCircle, ArrowUpRight, Sparkles } from 'lucide-react';
 import { PageHero } from '@/components/site/PageHero';
 import { publicService, unwrapItem } from '@/lib/api/public-endpoints';
 import type { Ppdb, PpdbScheduleItem } from '@/types/cms';
@@ -158,6 +158,28 @@ export default function PpdbPage() {
               ))}
             </ul>
           </div>
+        </div>
+
+        {/* Dynamic NESAI Consultation Banner */}
+        <div className="mt-12 rounded-3xl border border-emerald-200 bg-gradient-to-r from-emerald-50 via-teal-50 to-cyan-50 p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xs">
+          <div className="space-y-1 text-center sm:text-left">
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100/80 px-2.5 py-0.5 rounded-full inline-block mb-1">
+              Bantuan Konsultasi PPDB
+            </span>
+            <h4 className="text-lg sm:text-xl font-bold text-[#0f1e36]">
+              Butuh Panduan Persyaratan atau Jalur PPDB?
+            </h4>
+            <p className="text-xs sm:text-sm text-slate-600">
+              Tanyakan langsung ke asisten virtual NESAI mengenai kriteria zonasi, prestasi, dan validasi berkas.
+            </p>
+          </div>
+          <Link
+            href="/nesai?topic=ppdb&q=Bagaimana%20persyaratan%20dan%20alur%20pendaftaran%20PPDB%20di%20SMKN%201%20Subang%3F&autoSend=true"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#172b3a] hover:bg-[#09243b] text-white px-5 py-3 text-xs sm:text-sm font-semibold shadow-md shrink-0 transition active:scale-95"
+          >
+            <Sparkles className="h-4 w-4 text-[#e7ae32]" />
+            <span>Tanya NESAI Seputar PPDB</span>
+          </Link>
         </div>
       </section>
 

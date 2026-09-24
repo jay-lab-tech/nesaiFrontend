@@ -60,7 +60,18 @@ export function CtaSection() {
 
               <button
                 type="button"
-                onClick={() => openNesaiChat('Saya ingin mengetahui syarat, alur pendaftaran, dan jadwal PPDB SMKN 1 Subang 2026.')}
+                onClick={() =>
+                  openNesaiChat({
+                    prompt:
+                      'Saya ingin mengetahui syarat, alur pendaftaran, dan jadwal PPDB SMKN 1 Subang 2026.',
+                    context: {
+                      page: 'homepage_cta',
+                      path: '/ppdb',
+                      topic: 'ppdb',
+                    },
+                    autoSend: true,
+                  })
+                }
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 px-8 py-4 text-base font-semibold text-white backdrop-blur-md hover:bg-white/20 hover:border-white/50 active:scale-95 transition-all"
               >
                 <Bot className="h-5 w-5 text-cyan-300" />

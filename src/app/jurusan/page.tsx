@@ -54,18 +54,18 @@ const DEFAULT_MAJORS_DATA: MajorDetail[] = [
     promptQuestion: 'Jelaskan prospek kerja, mata pelajaran, dan sertifikasi di jurusan Teknik Komputer & Jaringan (TKJ) SMKN 1 Subang.',
   },
   {
-    id: 'rpl',
-    slug: 'rpl',
-    code: 'RPL',
-    name: 'Rekayasa Perangkat Lunak',
+    id: 'pplg',
+    slug: 'pplg',
+    code: 'PPLG',
+    name: 'Pengembangan Perangkat Lunak & Gim (PPLG)',
     badge: 'Software & AI Development',
     icon: Code2,
     color: 'from-indigo-600 to-blue-600',
-    summary: 'Fokus pada pemrograman berorientasi objek, perancangan basis data relasional & NoSQL, pengembangan web full-stack modern, mobile application (Flutter/React Native), dan integrasi AI.',
-    skills: ['Full-Stack Web (Next.js, Laravel, Node.js)', 'Mobile Apps (Flutter / Android)', 'Database Engineering (PostgreSQL, MySQL)', 'API Integration & Cloud Deployment', 'Git & Software Testing'],
+    summary: 'Fokus pada pemrograman berorientasi objek, perancangan basis data relasional & NoSQL, pengembangan web full-stack modern, mobile application (Flutter/React Native), game development, dan integrasi AI.',
+    skills: ['Full-Stack Web (Next.js, Laravel, Node.js)', 'Mobile Apps (Flutter / Android)', 'Database Engineering (PostgreSQL, MySQL)', 'Game Development 2D/3D', 'Git & Software Testing'],
     certifications: ['BNSP Junior Web Developer', 'Oracle Certified Java Associate', 'Google Cloud Certified Associate'],
-    careers: ['Full-Stack Developer', 'Frontend / Backend Engineer', 'Mobile App Developer', 'Software QA Tester', 'AI Prompt & Solution Engineer'],
-    promptQuestion: 'Apa saja materi coding, portofolio yang dibuat, dan prospek karir jurusan Rekayasa Perangkat Lunak (RPL)?',
+    careers: ['Full-Stack Developer', 'Frontend / Backend Engineer', 'Mobile App Developer', 'Game Programmer', 'Software QA Tester'],
+    promptQuestion: 'Apa saja materi coding, portofolio yang dibuat, dan prospek karir jurusan Pengembangan Perangkat Lunak dan Gim (PPLG)?',
   },
   {
     id: 'dkv',
@@ -128,6 +128,7 @@ const DEFAULT_MAJORS_DATA: MajorDetail[] = [
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   tkj: Network,
   rpl: Code2,
+  pplg: Code2,
   dkv: Palette,
   toi: Cpu,
   bdp: TrendingUp,
@@ -137,6 +138,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
 const COLOR_MAP: Record<string, string> = {
   tkj: 'from-blue-600 to-cyan-600',
   rpl: 'from-indigo-600 to-blue-600',
+  pplg: 'from-indigo-600 to-blue-600',
   dkv: 'from-purple-600 to-pink-600',
   toi: 'from-teal-600 to-emerald-600',
   bdp: 'from-amber-600 to-orange-600',
@@ -268,7 +270,19 @@ export default function JurusanPage() {
                     </Link>
                     <button
                       type="button"
-                      onClick={() => openNesaiChat(major.promptQuestion)}
+                      onClick={() =>
+                        openNesaiChat({
+                          prompt: major.promptQuestion,
+                          context: {
+                            page: 'majors_list',
+                            path: `/jurusan/${major.slug}`,
+                            major: major.slug,
+                            majorName: major.name,
+                            topic: 'jurusan',
+                          },
+                          autoSend: true,
+                        })
+                      }
                       className="inline-flex items-center gap-2 self-start rounded-xl border border-cyan-300 bg-cyan-50/80 px-4 py-2.5 text-xs font-bold text-cyan-800 hover:bg-cyan-100 hover:border-cyan-400 transition-all shadow-2xs"
                     >
                       <Bot className="h-4 w-4 text-cyan-600" />
@@ -350,7 +364,18 @@ export default function JurusanPage() {
             </p>
             <button
               type="button"
-              onClick={() => openNesaiChat('Saya ingin tes minat dan bakat. Bisakah NESAI merekomendasikan jurusan yang paling cocok dengan hobi dan keahlian saya?')}
+              onClick={() =>
+                openNesaiChat({
+                  prompt:
+                    'Saya ingin tes minat dan bakat. Bisakah NESAI merekomendasikan jurusan yang paling cocok dengan hobi dan keahlian saya?',
+                  context: {
+                    page: 'majors_list',
+                    path: '/jurusan',
+                    topic: 'jurusan',
+                  },
+                  autoSend: true,
+                })
+              }
               className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-8 py-3.5 text-sm font-bold text-white shadow-lg hover:from-cyan-600 hover:to-blue-700 transition-all active:scale-95"
             >
               <Sparkles className="h-4 w-4" />

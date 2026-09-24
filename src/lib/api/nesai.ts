@@ -1,4 +1,4 @@
-import type { NesaiChatResponse } from '@/types/nesai';
+import type { NesaiChatResponse, NesaiContext } from '@/types/nesai';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
 
@@ -9,7 +9,8 @@ export interface ChatHistoryItem {
 
 export async function sendNesaiMessage(
   message: string,
-  history: ChatHistoryItem[] = []
+  history: ChatHistoryItem[] = [],
+  context?: NesaiContext
 ): Promise<NesaiChatResponse> {
   const rootUrl = API_BASE_URL.replace(/\/api\/v1\/?$/, '');
   const endpoints = [
@@ -31,7 +32,7 @@ export async function sendNesaiMessage(
         body: JSON.stringify({
           message: message.trim(),
           history,
-          context: [],
+          context: context || [],
         }),
       });
 

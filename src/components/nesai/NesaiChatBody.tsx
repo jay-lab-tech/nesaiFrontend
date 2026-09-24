@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
-import { ChatMessage } from '@/types/nesai';
+import { ChatMessage, NesaiContext } from '@/types/nesai';
 import { NesaiMessageList } from './NesaiMessageList';
 import { NesaiQuickReplies } from './NesaiQuickReplies';
 import { NesaiChatInput } from './NesaiChatInput';
@@ -11,6 +11,8 @@ interface NesaiChatBodyProps {
   isLoading: boolean;
   sendMessage: (text: string) => void;
   variant?: 'floating' | 'fullpage';
+  activeContext?: NesaiContext | null;
+  prefillValue?: string;
 }
 
 export function NesaiChatBody({
@@ -18,6 +20,8 @@ export function NesaiChatBody({
   isLoading,
   sendMessage,
   variant = 'floating',
+  activeContext,
+  prefillValue,
 }: NesaiChatBodyProps) {
   const handleSend = useCallback(
     (text: string) => {
@@ -26,20 +30,21 @@ export function NesaiChatBody({
     [sendMessage],
   );
 
-  // Show quick replies only when there's just the welcome message
+  // Show quick replies when conversation is at starting state
   const showQuickReplies = messages.length <= 1 && messages[0]?.sender === 'nesai';
 
   return (
-    <>
-      <div className={`flex-1 min-h-0 flex flex-col bg-[#f8faf8] overflow-hidden ${variant === 'fullpage' ? 'min-h-0' : ''}`}>
-        <NesaiMessageList messages={messages} isLoading={isLoading} />
+    <div className="flex-1 min-h-0 flex flex-col bg-[#f8faf8] overflow-hidden w-full">
+      <NesaiMessageList messages={messages} isLoading={isLoading} />
 
-        {showQuickReplies && (
-          <NesaiQuickReplies onSelect={handleSend} disabled={isLoading} />
-        )}
-      </div>
+      {showQuickReplies && (
+        <NesaiQuickReplies
+          onSelect={handleSend}
+          disabled={isLoading}
+        />
+      )}
 
-      <NesaiChatInput onSend={handleSend} disabled={isLoading} />
-    </>
+      <NesaiChatInput onSend={handleSend} disabled={isLoading} prefillValue={prefillValue} />
+    </div>
   );
 }

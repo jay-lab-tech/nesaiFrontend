@@ -16,18 +16,23 @@ import {
   Lightbulb,
   GraduationCap,
   Sparkles,
-  Bot
+  Bot,
+  Award,
+  ArrowLeft
 } from 'lucide-react';
 import { publicService, unwrapItem, type MajorWithRelations } from '@/lib/api/public-endpoints';
 import { Skeleton } from '@/components/ui/skeleton';
 import { openNesaiChat } from '@/lib/nesai-events';
+import { getFallbackMajorBySlug, DEFAULT_MAJORS_CATALOG, type FallbackMajorDefinition } from '@/lib/data/default-majors';
 
 const PRESENTATION: Record<string, { icon: React.ComponentType<{ className?: string }>; color: string }> = {
   tkj: { icon: Network, color: 'from-blue-600 to-cyan-600' },
   rpl: { icon: Code2, color: 'from-indigo-600 to-blue-600' },
+  pplg: { icon: Code2, color: 'from-indigo-600 to-blue-600' },
   dkv: { icon: Palette, color: 'from-purple-600 to-pink-600' },
   toi: { icon: Cpu, color: 'from-teal-600 to-emerald-600' },
   bdp: { icon: TrendingUp, color: 'from-amber-600 to-orange-600' },
+  pm: { icon: TrendingUp, color: 'from-amber-600 to-orange-600' },
   akl: { icon: Calculator, color: 'from-sky-600 to-blue-700' },
 };
 
@@ -42,28 +47,71 @@ export default function MajorDetailPage() {
   useEffect(() => {
     if (!params.slug) return;
     setLoading(true);
+
+    const fallback = getFallbackMajorBySlug(params.slug);
+
     publicService.getMajorBySlug(params.slug)
       .then((r) => {
         const item = unwrapItem<MajorWithRelations>(r);
-        if (item) {
+        if (item && item.name) {
           setMajor(item);
+          setError(false);
+        } else if (fallback) {
+          setMajor(fallback);
+          setError(false);
         } else {
           setError(true);
         }
       })
-      .catch(() => setError(true))
+      .catch(() => {
+        if (fallback) {
+          setMajor(fallback);
+          setError(false);
+        } else {
+          setError(true);
+        }
+      })
       .finally(() => setLoading(false));
   }, [params.slug]);
 
   if (error) {
     return (
       <div className="bg-slate-50 min-h-screen py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-2xl font-bold text-slate-800">Jurusan tidak ditemukan</h2>
-          <p className="mt-2 text-sm text-slate-500">Program keahlian yang Anda cari tidak tersedia atau sedang diperbarui.</p>
-          <Link href="/jurusan" className="mt-6 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-blue-700">
-            Kembali ke Daftar Jurusan
-          </Link>
+        <div className="mx-auto max-w-2xl px-4 sm:px-6 text-center">
+          <div className="h-16 w-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100">
+            <Bot className="h-8 w-8" />
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">Jurusan tidak ditemukan</h2>
+          <p className="mt-3 text-sm text-slate-600 leading-relaxed">
+            Program keahlian dengan identifier <code className="bg-slate-200 px-1.5 py-0.5 rounded text-slate-800 font-mono text-xs">{params.slug}</code> tidak tersedia atau sedang dalam pembaruan data kurikulum.
+          </p>
+
+          <div className="mt-8 p-5 bg-white border border-slate-200 rounded-2xl shadow-xs text-left">
+            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-3">
+              Pilihan Jurusan yang Tersedia:
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {DEFAULT_MAJORS_CATALOG.map((m) => (
+                <Link
+                  key={m.slug}
+                  href={`/jurusan/${m.slug}`}
+                  className="px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-cyan-50 hover:border-cyan-300 hover:text-cyan-800 text-xs font-semibold text-slate-700 transition"
+                >
+                  {m.name}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-8 flex justify-center gap-3">
+            <Link
+              href="/jurusan"
+              className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-2.5 text-xs font-bold text-white hover:bg-blue-700 transition"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              <span>Semua Jurusan SMKN 1 Subang</span>
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -84,12 +132,14 @@ export default function MajorDetailPage() {
     );
   }
 
-  const pres = PRESENTATION[major.slug.toLowerCase()] ?? FALLBACK;
+  const slugKey = (major.slug || params.slug || '').toLowerCase();
+  const pres = PRESENTATION[slugKey] ?? FALLBACK;
   const Icon = pres.icon;
   const skills = major.subjects?.map((s) => s.name) ?? [];
   const careers = major.careers?.map((c) => c.name) ?? [];
   const innovations = major.innovations ?? [];
   const alumni = major.alumni ?? [];
+  const certifications = (major as FallbackMajorDefinition).certifications ?? [];
 
   return (
     <div className="bg-slate-50 min-h-screen">
@@ -131,7 +181,19 @@ export default function MajorDetailPage() {
 
             <button
               type="button"
-              onClick={() => openNesaiChat(`Bisa jelaskan lebih banyak tentang kurikulum, mata pelajaran, dan prospek karir di jurusan ${major.name}?`)}
+              onClick={() =>
+                openNesaiChat({
+                  prompt: `Bisa jelaskan lebih banyak tentang kurikulum, mata pelajaran, dan prospek karir di jurusan ${major.name}?`,
+                  context: {
+                    page: 'major_detail',
+                    path: `/jurusan/${major.slug}`,
+                    major: major.slug,
+                    majorName: major.name,
+                    topic: 'jurusan',
+                  },
+                  autoSend: true,
+                })
+              }
               className="inline-flex items-center gap-2 self-start rounded-xl border border-cyan-400/50 bg-cyan-950/80 px-4 py-2.5 text-xs font-bold text-cyan-300 hover:bg-cyan-900 transition-all shadow-md"
             >
               <Bot className="h-4 w-4 text-cyan-400" />
@@ -159,13 +221,13 @@ export default function MajorDetailPage() {
             </div>
           )}
 
-          {/* 2 Grid: Skills and Careers */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Grid: Skills, Careers, & Certifications */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {skills.length > 0 && (
               <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-sm">
                 <div className="flex items-center gap-2 text-base font-bold text-slate-900 mb-4">
                   <CheckCircle2 className="h-5 w-5 text-blue-600" />
-                  <span>Keahlian & Mata Pelajaran Utama</span>
+                  <span>Keahlian & Materi Utama</span>
                 </div>
                 <ul className="space-y-3 text-xs sm:text-sm text-slate-600">
                   {skills.map((skill) => (
@@ -189,6 +251,23 @@ export default function MajorDetailPage() {
                     <li key={career} className="flex items-start gap-2 border-b border-slate-100 pb-2.5 last:border-0 last:pb-0">
                       <span className="text-emerald-500 font-bold">•</span>
                       <span>{career}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {certifications.length > 0 && (
+              <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-sm md:col-span-2 lg:col-span-1">
+                <div className="flex items-center gap-2 text-base font-bold text-slate-900 mb-4">
+                  <Award className="h-5 w-5 text-amber-500" />
+                  <span>Sertifikasi & Uji Kompetensi</span>
+                </div>
+                <ul className="space-y-3 text-xs sm:text-sm text-slate-600">
+                  {certifications.map((cert) => (
+                    <li key={cert} className="flex items-start gap-2 border-b border-slate-100 pb-2.5 last:border-0 last:pb-0">
+                      <span className="text-amber-500 font-bold">•</span>
+                      <span>{cert}</span>
                     </li>
                   ))}
                 </ul>

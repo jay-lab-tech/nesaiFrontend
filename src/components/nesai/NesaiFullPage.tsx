@@ -1,8 +1,11 @@
 'use client';
 
+import { Suspense, useEffect, useRef, useState, startTransition } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useNesaiChat } from '@/hooks/useNesaiChat';
 import { NesaiHeader } from './NesaiHeader';
 import { NesaiChatBody } from './NesaiChatBody';
+import type { NesaiContext } from '@/types/nesai';
 import {
   GraduationCap,
   FileText,
@@ -13,6 +16,13 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+
+interface TopicItem {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  desc: string;
+  prompt: string;
+}
 
 const POPULAR_TOPICS = [
   {
@@ -41,8 +51,57 @@ const POPULAR_TOPICS = [
   },
 ];
 
-export function NesaiFullPage() {
-  const { messages, isLoading, sendMessage, clearChat } = useNesaiChat();
+function NesaiFullPageInner() {
+  const searchParams = useSearchParams();
+  const {
+    messages,
+    activeContext,
+    isLoading,
+    sendMessage,
+    setActiveContext,
+    clearActiveContext,
+    clearChat,
+  } = useNesaiChat();
+
+  const [prefillPrompt, setPrefillPrompt] = useState<string>('');
+  const hasProcessedParams = useRef(false);
+
+  // Parse and apply dynamic URL parameters
+  useEffect(() => {
+    if (hasProcessedParams.current) return;
+
+    const majorParam = searchParams.get('jurusan') || searchParams.get('major');
+    const topicParam = searchParams.get('topic');
+    const promptParam = searchParams.get('prompt') || searchParams.get('q');
+    const autoSendParam =
+      searchParams.get('autoSend') === 'true' || searchParams.get('autoSend') === '1';
+
+    let initialContext: NesaiContext | null = null;
+    if (majorParam || topicParam) {
+      initialContext = {
+        page: 'nesai-fullpage',
+        major: majorParam || undefined,
+        majorName: majorParam ? majorParam.toUpperCase() : undefined,
+        topic: topicParam || (majorParam ? 'jurusan' : undefined),
+      };
+    }
+
+    startTransition(() => {
+      if (initialContext) {
+        setActiveContext(initialContext);
+      }
+
+      if (promptParam) {
+        if (autoSendParam) {
+          sendMessage(promptParam, initialContext || undefined);
+        } else {
+          setPrefillPrompt(promptParam);
+        }
+      }
+    });
+
+    hasProcessedParams.current = true;
+  }, [searchParams, setActiveContext, sendMessage]);
 
   return (
     <div className="w-full h-[calc(100dvh-82px)] max-h-[calc(100dvh-82px)] bg-[#f8faf8] overflow-hidden flex flex-col">
@@ -126,16 +185,41 @@ export function NesaiFullPage() {
 
         {/* Chat Area: Mengisi penuh ruang di mobile & tablet, 1 kartu di desktop */}
         <main className="flex-1 w-full h-full flex flex-col bg-white sm:border sm:border-[#dce5e1] sm:rounded-2xl overflow-hidden shadow-xs">
-          <NesaiHeader onClear={clearChat} variant="fullpage" />
+          <NesaiHeader
+            onClear={clearChat}
+            variant="fullpage"
+            activeContext={activeContext}
+            onClearContext={clearActiveContext}
+          />
 
           <NesaiChatBody
             messages={messages}
             isLoading={isLoading}
             sendMessage={sendMessage}
             variant="fullpage"
+            activeContext={activeContext}
+            prefillValue={prefillPrompt}
           />
         </main>
       </div>
     </div>
   );
 }
+
+export function NesaiFullPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="w-full h-[calc(100dvh-82px)] flex items-center justify-center bg-[#f8faf8]">
+          <div className="flex flex-col items-center gap-3">
+            <div className="h-8 w-8 rounded-full border-2 border-emerald-600 border-t-transparent animate-spin" />
+            <p className="text-xs text-[#5d6a6e] font-medium">Memuat NesAI...</p>
+          </div>
+        </div>
+      }
+    >
+      <NesaiFullPageInner />
+    </Suspense>
+  );
+}
+

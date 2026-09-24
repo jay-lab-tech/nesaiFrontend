@@ -33,6 +33,7 @@ interface MajorItem {
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   tkj: Network,
   rpl: Code2,
+  pplg: Code2,
   dkv: Palette,
   toi: Cpu,
   bdp: TrendingUp,
@@ -52,15 +53,15 @@ const MAJORS: MajorItem[] = [
     promptQuestion: 'Bagaimana kurikulum dan prospek kerja jurusan Teknik Komputer & Jaringan (TKJ)?',
   },
   {
-    id: 'rpl',
-    slug: 'rpl',
-    code: 'RPL',
-    name: 'Rekayasa Perangkat Lunak',
+    id: 'pplg',
+    slug: 'pplg',
+    code: 'PPLG',
+    name: 'Pengembangan Perangkat Lunak & Gim',
     icon: Code2,
     description: 'Pemrograman web modern, aplikasi mobile Android/iOS, basis data enterprise, cloud deployment, dan artificial intelligence engineering.',
     colorClass: 'from-indigo-600 to-blue-600',
     iconBg: 'bg-indigo-50 text-indigo-600 border-indigo-200',
-    promptQuestion: 'Apa saja yang dipelajari dan peluang karir jurusan Rekayasa Perangkat Lunak (RPL)?',
+    promptQuestion: 'Apa saja yang dipelajari dan peluang karir di jurusan Pengembangan Perangkat Lunak dan Gim (PPLG)?',
   },
   {
     id: 'dkv',
@@ -210,7 +211,19 @@ export function MajorsSection() {
                 <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
                   <button
                     type="button"
-                    onClick={() => openNesaiChat(major.promptQuestion)}
+                    onClick={() =>
+                      openNesaiChat({
+                        prompt: major.promptQuestion,
+                        context: {
+                          page: 'homepage_majors',
+                          path: `/jurusan/${major.slug}`,
+                          major: major.slug,
+                          majorName: major.name,
+                          topic: 'jurusan',
+                        },
+                        autoSend: true,
+                      })
+                    }
                     className="inline-flex items-center gap-1.5 text-xs font-semibold text-cyan-700 hover:text-cyan-900 hover:underline cursor-pointer"
                   >
                     <Bot className="h-3.5 w-3.5 text-cyan-600" />
@@ -237,7 +250,18 @@ export function MajorsSection() {
             <span>Bingung memilih jurusan yang tepat untuk minatmu?</span>
             <button
               type="button"
-              onClick={() => openNesaiChat('Saya bingung memilih jurusan. Bisakah NESAI membantu menganalisis minat dan bakat saya untuk menentukan jurusan terbaik di SMKN 1 Subang?')}
+              onClick={() =>
+                openNesaiChat({
+                  prompt:
+                    'Saya bingung memilih jurusan. Bisakah NESAI membantu menganalisis minat dan bakat saya untuk menentukan jurusan terbaik di SMKN 1 Subang?',
+                  context: {
+                    page: 'homepage',
+                    path: '/',
+                    topic: 'jurusan',
+                  },
+                  autoSend: true,
+                })
+              }
               className="font-bold text-blue-600 hover:text-blue-800 underline ml-1 cursor-pointer"
             >
               Konsultasikan ke NESAI sekarang

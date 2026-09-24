@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef, startTransition } from 'react';
-import { ChatMessage } from '@/types/nesai';
-import { sendNesaiMessage } from '@/lib/api/nesai';
+import { ChatMessage, NesaiContext } from '@/types/nesai';
+import { sendNesaiMessage, ChatHistoryItem } from '@/lib/api/nesai';
 
 const SESSION_STORAGE_KEY = 'nesai-chat-messages';
+const CONTEXT_STORAGE_KEY = 'nesai-chat-context';
 
 const WELCOME_MESSAGE: ChatMessage = {
   id: 'welcome',
@@ -37,80 +38,115 @@ function saveMessagesToSession(messages: ChatMessage[]): void {
 
 export function useNesaiChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
+  const [activeContext, setActiveContextState] = useState<NesaiContext | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const isInitialized = useRef(false);
 
-  // Restore messages from sessionStorage on mount or initialize timestamp
+  // Restore messages from sessionStorage on mount and clear any stale context storage
   useEffect(() => {
-    const stored = loadMessagesFromSession();
-    if (stored && stored.length > 0) {
-      startTransition(() => {
-        setMessages(stored);
-      });
-    } else {
-      startTransition(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        sessionStorage.removeItem('nesai-chat-context');
+      } catch {
+        // Ignore storage errors
+      }
+    }
+
+    const storedMessages = loadMessagesFromSession();
+
+    startTransition(() => {
+      if (storedMessages && storedMessages.length > 0) {
+        setMessages(storedMessages);
+      } else {
         setMessages([
           {
             ...WELCOME_MESSAGE,
             createdAt: new Date().toISOString(),
           },
         ]);
-      });
-    }
+      }
+    });
     isInitialized.current = true;
   }, []);
 
-  // Persist messages to sessionStorage on change (skip initial mount to prevent overwriting stored session)
+  // Persist messages to sessionStorage on change
   useEffect(() => {
     if (!isInitialized.current) return;
     saveMessagesToSession(messages);
   }, [messages]);
 
-  const sendMessage = useCallback(async (text: string) => {
-    if (!text.trim() || isLoading) return;
+  const setActiveContext = useCallback((ctx: NesaiContext | null) => {
+    setActiveContextState(ctx);
+  }, []);
 
-    const userMessage: ChatMessage = {
-      id: `user-${Date.now()}`,
-      sender: 'user',
-      text: text.trim(),
-      createdAt: new Date().toISOString(),
-    };
+  const clearActiveContext = useCallback(() => {
+    setActiveContextState(null);
+  }, []);
 
-    setMessages((prev) => [...prev, userMessage]);
-    setIsLoading(true);
-    setError(null);
+  const sendMessage = useCallback(
+    async (text: string, overrideContext?: NesaiContext) => {
+      if (!text.trim() || isLoading) return;
 
-    try {
-      const response = await sendNesaiMessage(text);
-      const data = response.data;
+      const effectiveContext = overrideContext !== undefined ? overrideContext : activeContext;
+      if (overrideContext !== undefined && overrideContext !== activeContext) {
+        setActiveContextState(overrideContext);
+      }
 
-      const botMessage: ChatMessage = {
-        id: `nesai-${Date.now()}`,
-        sender: 'nesai',
-        text: data.answer,
+      const userMessage: ChatMessage = {
+        id: `user-${Date.now()}`,
+        sender: 'user',
+        text: text.trim(),
         createdAt: new Date().toISOString(),
-        intent: data.intent,
-        sources: data.sources,
-        actions: data.actions,
+        context: effectiveContext || undefined,
       };
 
-      setMessages((prev) => [...prev, botMessage]);
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan jaringan.';
-      const fallbackErrorMessage: ChatMessage = {
-        id: `error-${Date.now()}`,
-        sender: 'nesai',
-        text: 'Maaf, terjadi gangguan saat menghubungi server. Silakan coba lagi atau cek koneksi internet Anda.',
-        createdAt: new Date().toISOString(),
-        isError: true,
-      };
-      setMessages((prev) => [...prev, fallbackErrorMessage]);
-      setError(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [isLoading]);
+      setMessages((prev) => [...prev, userMessage]);
+      setIsLoading(true);
+      setError(null);
+
+      // Build chat history from prior messages (last 6 messages)
+      const history: ChatHistoryItem[] = messages
+        .filter((m) => m.id !== 'welcome' && !m.isError)
+        .slice(-6)
+        .map((m) => ({
+          role: m.sender === 'user' ? 'user' : 'assistant',
+          content: m.text,
+        }));
+
+      try {
+        const response = await sendNesaiMessage(text, history, effectiveContext || undefined);
+        const data = response.data;
+
+        const botMessage: ChatMessage = {
+          id: `nesai-${Date.now()}`,
+          sender: 'nesai',
+          text: data.answer,
+          createdAt: new Date().toISOString(),
+          intent: data.intent,
+          sources: data.sources,
+          actions: data.actions,
+          context: effectiveContext || undefined,
+        };
+
+        setMessages((prev) => [...prev, botMessage]);
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan jaringan.';
+        const fallbackErrorMessage: ChatMessage = {
+          id: `error-${Date.now()}`,
+          sender: 'nesai',
+          text: 'Maaf, terjadi gangguan saat menghubungi server. Silakan coba lagi atau cek koneksi internet Anda.',
+          createdAt: new Date().toISOString(),
+          isError: true,
+        };
+        setMessages((prev) => [...prev, fallbackErrorMessage]);
+        setError(errorMessage);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [isLoading, activeContext, messages]
+  );
 
   const clearChat = useCallback(() => {
     const resetMessage: ChatMessage = {
@@ -120,14 +156,19 @@ export function useNesaiChat() {
       createdAt: new Date().toISOString(),
     };
     setMessages([resetMessage]);
+    setActiveContextState(null);
     setError(null);
   }, []);
 
   return {
     messages,
+    activeContext,
     isLoading,
     error,
     sendMessage,
+    setActiveContext,
+    clearActiveContext,
     clearChat,
   };
 }
+

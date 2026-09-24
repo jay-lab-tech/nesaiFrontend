@@ -18,6 +18,17 @@
   max-width: 100%;
 }
 
+.nesai-prose pre {
+  max-width: 100%;
+  overflow-x: auto;
+  background-color: #0f1e36;
+  color: #f1f5f9;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  margin: 0.5rem 0;
+}
+
 .nesai-prose p {
   margin-top: 0;
   margin-bottom: 0.5rem;
@@ -83,4 +94,15 @@
 
 .animate-nesai-in {
   animation: nesai-fade-up 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

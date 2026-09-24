@@ -1,19 +1,32 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, startTransition } from 'react';
 import { ArrowUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface NesaiChatInputProps {
   onSend: (text: string) => void;
   disabled?: boolean;
+  prefillValue?: string;
 }
 
 const MAX_MESSAGE_LENGTH = 2000;
 
-export function NesaiChatInput({ onSend, disabled }: NesaiChatInputProps) {
+export function NesaiChatInput({ onSend, disabled, prefillValue }: NesaiChatInputProps) {
   const [input, setInput] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Sync prefill value if provided
+  useEffect(() => {
+    if (prefillValue) {
+      startTransition(() => {
+        setInput(prefillValue);
+      });
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+      }
+    }
+  }, [prefillValue]);
 
   // Auto-resize textarea
   useEffect(() => {
