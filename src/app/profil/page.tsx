@@ -1,270 +1,212 @@
-import Link from 'next/link';
-import { 
-  Building2, 
-  Target, 
-  History, 
-  Award, 
-  ShieldCheck, 
-  GraduationCap, 
-  ChevronRight
-} from 'lucide-react';
-import { PrincipalSection } from '@/components/home/PrincipalSection';
-import { NesaiPromoBar } from '@/components/home/NesaiPromoBar';
+'use client';
 
-export const metadata = {
-  title: 'Profil Sekolah — SMKN 1 Subang (NESAS)',
-  description: 'Sejarah, Visi, Misi, Budaya Sekolah, dan Struktur Manajemen SMK Negeri 1 Subang.',
-};
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { PageHero } from '@/components/site/PageHero';
+import { publicService, unwrapItem } from '@/lib/api/public-endpoints';
+import type { School } from '@/types/cms';
+import { MapPin, Mail, Phone } from 'lucide-react';
 
 export default function ProfilPage() {
-  const VALUES = [
-    {
-      title: 'Nyantri',
-      desc: 'Menjunjung tinggi nilai spiritual, berakhlak karimah, bertoleransi, dan berintegritas.',
-      color: 'from-blue-600 to-indigo-600',
-    },
-    {
-      title: 'Rancage',
-      desc: 'Terampil, tangkas, kreatif, dan senantiasa berorientasi pada solusi praktis industri.',
-      color: 'from-cyan-600 to-teal-600',
-    },
-    {
-      title: 'Pinter',
-      desc: 'Cerdas dalam ilmu pengetahuan, menguasai teknologi terkini, dan adaptif terhadap AI.',
-      color: 'from-amber-500 to-orange-600',
-    },
-    {
-      title: 'Bageur',
-      desc: 'Berbudi pekerti luhur, peduli sesama, sopan santun, dan menjunjung tinggi kerja tim.',
-      color: 'from-emerald-600 to-teal-700',
-    },
-  ];
+  const [school, setSchool] = useState<School | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const MANAGEMENT = [
-    { role: 'Kepala Sekolah', name: 'Deden Suryanto, M.Pd' },
-    { role: 'Wakasek Kurikulum', name: 'Drs. H. Ahmad Sudrajat, M.M' },
-    { role: 'Wakasek Kesiswaan', name: 'Hj. Nenden Kurniasih, S.Pd' },
-    { role: 'Wakasek Hubungan Industri (Hubinmas)', name: 'Ir. Budi Hermawan, M.T' },
-    { role: 'Wakasek Sarana & Prasarana', name: 'Yayan Hendrayana, S.T' },
-  ];
+  useEffect(() => {
+    publicService.getSchool()
+      .then((res) => {
+        const item = unwrapItem<School>(res);
+        if (item) setSchool(item);
+      })
+      .catch((err) => {
+        console.error("Gagal mengambil data profil sekolah:", err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
+
+  // Parse mission whether string with newlines or list
+  const missionsList: string[] = school?.mission
+    ? school.mission
+        .split('\n')
+        .map((m) => m.replace(/^(\d+[\.\)]|\-|\*)\s*/, '').trim())
+        .filter(Boolean)
+    : [];
+
+  const schoolName = school?.name || 'SMK Negeri 1 Subang';
+  const description = school?.description || 'SMK Pusat Keunggulan di Kabupaten Subang yang berdedikasi menghasilkan lulusan kompeten, berkarakter, dan berdaya saing global.';
 
   return (
-    <div className="bg-slate-50 min-h-screen">
-      {/* Header Banner */}
-      <section className="relative bg-slate-950 text-white py-16 lg:py-24 overflow-hidden">
-        <div className="absolute inset-0 bg-cover bg-center opacity-25 filter brightness-50"
-             style={{ backgroundImage: `url('https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=2000&q=80')` }} />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent" />
-        
-        <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <nav className="flex items-center gap-2 text-xs font-semibold text-slate-400 mb-4">
-            <Link href="/" className="hover:text-cyan-300 transition-colors">Beranda</Link>
-            <ChevronRight className="h-3 w-3" />
-            <span className="text-cyan-300">Profil Sekolah</span>
-          </nav>
+    <main className="bg-[#f8faf8] text-[#172b3a]">
+      <PageHero
+        eyebrow="Profil Sekolah"
+        title={`Mengenal ${schoolName}`}
+        description={description}
+        image="https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=2200&q=90"
+      />
 
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-500/20 border border-cyan-400/30 px-3.5 py-1 text-xs font-semibold text-cyan-300 mb-4">
-            <Building2 className="h-3.5 w-3.5 text-cyan-400" />
-            Tentang SMKN 1 Subang
-          </span>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white mb-4">
-            Profil & Identitas Sekolah
-          </h1>
-          <p className="text-base sm:text-lg text-slate-300 max-w-3xl leading-relaxed">
-            Mengenal lebih dekat sejarah, visi misi, tata kelola, dan komitmen keunggulan SMK Negeri 1 Subang dalam menyiapkan generasi emas berdaya saing global.
-          </p>
-        </div>
-      </section>
-
-      {/* Sambutan Kepala Sekolah */}
-      <PrincipalSection />
-
-      {/* Visi & Misi */}
-      <section className="py-20 bg-white border-y border-slate-200">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-            {/* Visi */}
-            <div className="rounded-3xl border border-blue-200 bg-gradient-to-br from-blue-50/80 to-sky-50/50 p-8 sm:p-10 shadow-sm">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-md">
-                  <Target className="h-6 w-6 text-cyan-200" />
-                </div>
-                <div>
-                  <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">Arah & Pandangan</span>
-                  <h2 className="text-2xl font-extrabold text-slate-900">Visi Sekolah</h2>
-                </div>
-              </div>
-              <p className="text-lg font-semibold text-slate-800 leading-relaxed italic">
-                &ldquo;Menjadi Sekolah Menengah Kejuruan Pusat Keunggulan yang menghasilkan tamatan beriman, bertakwa, berkarakter mulia, kompeten, mandiri, dan berdaya saing global di era Industri 4.0.&rdquo;
-              </p>
-            </div>
-
-            {/* Misi */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-8 sm:p-10 shadow-sm">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-md">
-                  <Award className="h-6 w-6 text-cyan-400" />
-                </div>
-                <div>
-                  <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">Langkah Strategis</span>
-                  <h2 className="text-2xl font-extrabold text-slate-900">Misi Sekolah</h2>
-                </div>
-              </div>
-              <ul className="space-y-4 text-sm sm:text-base text-slate-600">
-                <li className="flex items-start gap-3">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700 text-xs font-bold">1</span>
-                  <span>Mengembangkan kurikulum kejuruan yang selaras (*link and match*) dengan kebutuhan dunia usaha dan dunia industri (DUDI).</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700 text-xs font-bold">2</span>
-                  <span>Menyelenggarakan proses pembelajaran berbasis *Teaching Factory* (TEFA) dan sertifikasi kompetensi keahlian nasional/internasional.</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700 text-xs font-bold">3</span>
-                  <span>Meningkatkan sarana prasarana modern, laboratorium berstandar industri, dan pemanfaatan kecerdasan artifisial.</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700 text-xs font-bold">4</span>
-                  <span>Menumbuhkan jiwa kewirausahaan (*technopreneurship*) dan budaya kerja industri berakhlak mulia.</span>
-                </li>
-              </ul>
+      {loading ? (
+        <div className="mx-auto max-w-7xl px-5 py-24 sm:px-8">
+          <div className="animate-pulse space-y-8">
+            <div className="h-6 w-32 bg-slate-200 rounded"></div>
+            <div className="h-10 w-3/4 bg-slate-200 rounded"></div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 pt-8">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-28 bg-slate-200 rounded-xl"></div>
+              ))}
             </div>
           </div>
         </div>
-      </section>
+      ) : (
+        <>
+          {/* Identitas & Statistik Utama */}
+          <section className="mx-auto grid max-w-7xl gap-12 px-5 py-20 sm:px-8 lg:grid-cols-[0.75fr_1.25fr] lg:py-28">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#657c7d]">Identitas Sekolah</p>
+              <h3 className="mt-4 font-school-heading text-2xl font-bold text-[#172b3a]">
+                {schoolName}
+              </h3>
+              {school?.principal_name && (
+                <div className="mt-6 rounded-2xl bg-white p-6 shadow-sm border border-slate-100">
+                  <p className="text-xs uppercase tracking-wider text-slate-400 font-medium">Kepala Sekolah</p>
+                  <p className="mt-2 text-lg font-bold text-slate-900">{school.principal_name}</p>
+                  <p className="text-xs text-slate-500 mt-1">Pemimpin Lembaga Pendidikan</p>
+                </div>
+              )}
+            </div>
 
-      {/* Nilai Budaya Sekolah NESAS */}
-      <section className="py-20 bg-slate-50">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 border border-blue-200 px-3.5 py-1 text-xs font-bold text-blue-700 uppercase tracking-wider mb-3">
-              Karakter Vokasi
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-950 tracking-tight mb-4">
-              Nilai Budaya Sekolah (NESAS)
-            </h2>
-            <p className="text-slate-600">
-              Prinsip integritas luhur yang ditanamkan kepada setiap civitas akademika SMKN 1 Subang.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {VALUES.map((val) => (
-              <div
-                key={val.title}
-                className="rounded-2xl border border-slate-200 bg-white p-7 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all"
-              >
-                <div className={`h-2.5 w-16 rounded-full bg-gradient-to-r ${val.color} mb-6`} />
-                <h3 className="text-2xl font-extrabold text-slate-900 mb-2">{val.title}</h3>
-                <p className="text-sm text-slate-600 leading-relaxed">{val.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Sejarah Singkat & Legalitas */}
-      <section className="py-20 bg-white border-t border-slate-200">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            <div className="lg:col-span-7 space-y-6">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-100 border border-cyan-200 px-3.5 py-1 text-xs font-bold text-cyan-800 uppercase tracking-wider">
-                <History className="h-3.5 w-3.5" />
-                Sejarah Singkat
-              </span>
-              <h2 className="text-3xl font-extrabold text-slate-950 tracking-tight">
-                Bertransformasi Menjadi Pusat Keunggulan Vokasi Subang
+            <div>
+              <h2 className="font-school-heading text-3xl font-semibold leading-tight sm:text-4xl text-[#0f1e36]">
+                Membangun Generasi Vokasi Unggul, Mandiri, dan Berkarakter
               </h2>
-              <p className="text-slate-600 leading-relaxed">
-                SMKN 1 Subang (dikenal akrab sebagai NESAS) didirikan pada tahun 1968 guna memenuhi kebutuhan tenaga kerja terampil di wilayah Subang dan sekitarnya. Berawal dari STM Negeri Subang dengan dua jurusan teknik dasar, kini sekolah telah bertransformasi menjadi institusi vokasi unggulan dengan 6 program keahlian berstandar industri era 4.0.
-              </p>
-              <p className="text-slate-600 leading-relaxed">
-                Melalui penetapan resmi sebagai <strong>SMK Pusat Keunggulan (SMK-PK)</strong> oleh Kementerian Pendidikan, Kebudayaan, Riset, dan Teknologi RI, SMKN 1 Subang terus memimpin inovasi pembelajaran berbasis Teaching Factory, kemitraan DUDI, serta pemanfaatan teknologi digital terpadu.
+              <p className="mt-6 text-base leading-8 text-[#5d6a6e]">
+                {description}
               </p>
 
-              <div className="pt-4 grid grid-cols-2 sm:grid-cols-3 gap-4">
-                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-                  <p className="text-xs text-slate-500 font-semibold">Tahun Berdiri</p>
-                  <p className="text-xl font-black text-blue-600">1968</p>
-                </div>
-                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-                  <p className="text-xs text-slate-500 font-semibold">Akreditasi</p>
-                  <p className="text-xl font-black text-emerald-600">A (Unggul)</p>
-                </div>
-                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-                  <p className="text-xs text-slate-500 font-semibold">Status Sekolah</p>
-                  <p className="text-xl font-black text-purple-600">SMK-PK</p>
-                </div>
+              {/* Data Identitas Resmi dari API */}
+              <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 border-t border-[#b9c7c2] pt-8">
+                {school?.npsn && (
+                  <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+                    <p className="text-xs uppercase tracking-widest text-[#748985]">NPSN</p>
+                    <p className="mt-1 font-mono font-bold text-lg text-slate-900">{school.npsn}</p>
+                  </div>
+                )}
+                {school?.accreditation && (
+                  <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+                    <p className="text-xs uppercase tracking-widest text-[#748985]">Akreditasi</p>
+                    <p className="mt-1 font-school-heading font-bold text-lg text-emerald-700">{school.accreditation} (Unggul)</p>
+                  </div>
+                )}
+                {school?.founded_year && (
+                  <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+                    <p className="text-xs uppercase tracking-widest text-[#748985]">Tahun Berdiri</p>
+                    <p className="mt-1 font-school-heading font-bold text-lg text-slate-900">{school.founded_year}</p>
+                  </div>
+                )}
+                {school?.area_size && (
+                  <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+                    <p className="text-xs uppercase tracking-widest text-[#748985]">Luas Area</p>
+                    <p className="mt-1 font-school-heading font-bold text-lg text-slate-900">{school.area_size}</p>
+                  </div>
+                )}
+                {typeof school?.student_count === 'number' && school.student_count > 0 && (
+                  <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+                    <p className="text-xs uppercase tracking-widest text-[#748985]">Total Siswa</p>
+                    <p className="mt-1 font-school-heading font-bold text-lg text-blue-700">{school.student_count.toLocaleString('id-ID')} Siswa</p>
+                  </div>
+                )}
+                {typeof school?.staff_count === 'number' && school.staff_count > 0 && (
+                  <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+                    <p className="text-xs uppercase tracking-widest text-[#748985]">Pendidik & Staf</p>
+                    <p className="mt-1 font-school-heading font-bold text-lg text-slate-900">{school.staff_count} Orang</p>
+                  </div>
+                )}
               </div>
             </div>
+          </section>
 
-            <div className="lg:col-span-5">
-              <div className="rounded-3xl border border-slate-200 bg-slate-900 text-white p-8 shadow-xl">
-                <div className="flex items-center gap-3 mb-6">
-                  <ShieldCheck className="h-6 w-6 text-cyan-400" />
-                  <h3 className="text-xl font-bold">Identitas Resmi</h3>
-                </div>
-                <dl className="space-y-4 text-sm divide-y divide-slate-800">
-                  <div className="pt-2 flex justify-between">
-                    <dt className="text-slate-400">NPSN</dt>
-                    <dd className="font-semibold text-slate-100">20233680</dd>
+          {/* Visi & Misi Dinamis */}
+          {(school?.vision || missionsList.length > 0) && (
+            <section className="bg-[#dfe9e5]">
+              <div className="mx-auto grid max-w-7xl gap-12 px-5 py-20 sm:px-8 lg:grid-cols-2 lg:py-24">
+                {school?.vision && (
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#657c7d]">Visi Sekolah</p>
+                    <p className="mt-5 font-school-heading text-2xl sm:text-3xl leading-snug font-medium text-[#172b3a]">
+                      &ldquo;{school.vision}&rdquo;
+                    </p>
                   </div>
-                  <div className="pt-3 flex justify-between">
-                    <dt className="text-slate-400">Bentuk Pendidikan</dt>
-                    <dd className="font-semibold text-slate-100">SMK Negeri</dd>
+                )}
+                {missionsList.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#657c7d]">Misi Sekolah</p>
+                    <ol className="mt-5 space-y-4 border-t border-[#aec0ba] pt-4 text-base leading-7 text-[#516064]">
+                      {missionsList.map((item, index) => (
+                        <li key={index} className="flex gap-4 border-b border-[#c5d3ce] pb-3">
+                          <span className="text-xs font-bold text-[#45615d]">{String(index + 1).padStart(2, '0')}</span>
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ol>
                   </div>
-                  <div className="pt-3 flex justify-between">
-                    <dt className="text-slate-400">Status Kepemilikan</dt>
-                    <dd className="font-semibold text-slate-100">Pemerintah Daerah Prov. Jabar</dd>
-                  </div>
-                  <div className="pt-3 flex justify-between">
-                    <dt className="text-slate-400">Kurikulum</dt>
-                    <dd className="font-semibold text-slate-100">Kurikulum Merdeka Vokasi</dd>
-                  </div>
-                  <div className="pt-3 flex justify-between">
-                    <dt className="text-slate-400">Nomor Telepon</dt>
-                    <dd className="font-semibold text-slate-100">(0260) 411410</dd>
-                  </div>
-                </dl>
+                )}
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
+            </section>
+          )}
 
-      {/* Struktur Kepemimpinan */}
-      <section className="py-20 bg-slate-50 border-t border-slate-200">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 border border-blue-200 px-3.5 py-1 text-xs font-bold text-blue-700 uppercase tracking-wider mb-3">
-              Manajemen Sekolah
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-950 tracking-tight">
-              Pimpinan & Manajemen
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {MANAGEMENT.map((mgr, idx) => (
-              <div
-                key={idx}
-                className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex items-center gap-4"
-              >
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 font-bold border border-blue-200">
-                  <GraduationCap className="h-6 w-6" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-blue-600 uppercase tracking-wider">{mgr.role}</p>
-                  <p className="text-base font-bold text-slate-900 mt-0.5">{mgr.name}</p>
+          {/* Kontak & Alamat Sekolah */}
+          {(school?.address || school?.phone || school?.email) && (
+            <section className="mx-auto max-w-7xl px-5 py-16 sm:px-8">
+              <div className="rounded-3xl bg-white p-8 sm:p-12 border border-slate-100 shadow-sm">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#657c7d]">Alamat & Kontak Resmi</p>
+                <div className="mt-6 grid gap-6 sm:grid-cols-3">
+                  {school?.address && (
+                    <div className="flex items-start gap-3">
+                      <div className="p-2.5 rounded-xl bg-slate-50 text-[#657c7d] shrink-0">
+                        <MapPin size={20} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Lokasi Kampus</p>
+                        <p className="mt-1 text-sm text-slate-700 leading-relaxed">{school.address}</p>
+                      </div>
+                    </div>
+                  )}
+                  {school?.phone && (
+                    <div className="flex items-start gap-3">
+                      <div className="p-2.5 rounded-xl bg-slate-50 text-[#657c7d] shrink-0">
+                        <Phone size={20} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Telepon</p>
+                        <p className="mt-1 text-sm text-slate-700">{school.phone}</p>
+                      </div>
+                    </div>
+                  )}
+                  {school?.email && (
+                    <div className="flex items-start gap-3">
+                      <div className="p-2.5 rounded-xl bg-slate-50 text-[#657c7d] shrink-0">
+                        <Mail size={20} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Surel / Email</p>
+                        <p className="mt-1 text-sm text-slate-700">{school.email}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
+            </section>
+          )}
 
-      {/* Promo Bar */}
-      <NesaiPromoBar />
-    </div>
+          {/* Navigasi Jurusan */}
+          <section className="mx-auto max-w-7xl px-5 py-8 sm:px-8">
+            <Link href="/jurusan" className="inline-flex items-center gap-2 border-b-2 border-[#e7ae32] pb-1 text-sm font-semibold text-slate-900 hover:text-amber-700 transition">
+              Eksplorasi Program Keahlian SMK Negeri 1 Subang →
+            </Link>
+          </section>
+        </>
+      )}
+    </main>
   );
 }
+

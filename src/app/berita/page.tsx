@@ -1,179 +1,172 @@
-import Image from 'next/image';
+'use client';
+
+import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
-import { 
-  Calendar, 
-  Tag, 
-  ChevronRight, 
-  ArrowRight, 
-  User, 
-  Newspaper 
-} from 'lucide-react';
-import { NesaiPromoBar } from '@/components/home/NesaiPromoBar';
+import { ArrowUpRight, Search, Calendar, Tag } from 'lucide-react';
+import { PageHero } from '@/components/site/PageHero';
+import { publicService, unwrapList } from '@/lib/api/public-endpoints';
+import type { News } from '@/types/cms';
 
-export const metadata = {
-  title: 'Berita & Informasi — SMKN 1 Subang (NESAS)',
-  description: 'Kabar terkini, kegiatan sekolah, dan pengumuman resmi SMKN 1 Subang.',
-};
-
-interface ArticleItem {
-  id: string;
-  title: string;
-  category: string;
-  date: string;
-  author: string;
-  excerpt: string;
-  imageUrl: string;
-}
-
-const ALL_NEWS: ArticleItem[] = [
+const DEFAULT_NEWS: News[] = [
   {
-    id: 'lks-nasional-2026',
+    id: 1,
     title: 'Siswa SMKN 1 Subang Borong Medali Emas di LKS Tingkat Nasional 2026',
-    category: 'Prestasi',
-    date: '18 September 2026',
-    author: 'Tim Humas NESAS',
-    excerpt: 'Perwakilan jurusan RPL dan TKJ berhasil membuktikan kapasitas unggulnya dengan meraih predikat juara umum cabang Cyber Security dan Web Technologies di LKS Nasional.',
-    imageUrl: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80',
+    slug: 'lks-nasional-2026',
+    published_at: '2026-09-18T10:00:00Z',
+    excerpt: 'Perwakilan jurusan RPL dan TKJ berhasil meraih predikat juara umum cabang Cyber Security dan Web Technologies di ajang LKS Nasional.',
+    body: 'Perwakilan jurusan RPL dan TKJ berhasil meraih predikat juara umum cabang Cyber Security dan Web Technologies di ajang LKS Nasional.',
   },
   {
-    id: 'mou-industri-tech',
-    title: 'Perluas Jejaring Karir: SMKN 1 Subang Teken MoU Kelas Industri Baru dengan 5 Perusahaan',
-    category: 'Kemitraan',
-    date: '10 September 2026',
-    author: 'Hubinmas',
-    excerpt: 'Kerjasama strategis guna penyaluran magang bersertifikat, kurikulum sinkronisasi, dan rekrutmen kerja langsung sebelum kelulusan siswa.',
-    imageUrl: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=800&q=80',
+    id: 2,
+    title: 'Perluas Jejaring Karir: SMKN 1 Subang Teken MoU Kelas Industri Baru',
+    slug: 'mou-kelas-industri',
+    published_at: '2026-09-10T10:00:00Z',
+    excerpt: 'Kerjasama strategis dengan perusahaan teknologi ternama guna penyaluran magang bersertifikat dan rekrutmen kerja langsung sebelum kelulusan.',
+    body: 'Kerjasama strategis dengan perusahaan teknologi ternama guna penyaluran magang bersertifikat dan rekrutmen kerja langsung sebelum kelulusan.',
   },
   {
-    id: 'ppdb-2026-buka',
+    id: 3,
     title: 'Pembukaan Jalur Pendaftaran PPDB SMKN 1 Subang Tahun Ajaran 2026/2027',
-    category: 'Pengumuman',
-    date: '01 September 2026',
-    author: 'Panitia PPDB',
-    excerpt: 'Informasi lengkap jadwal seleksi, kuota masing-masing jurusan, persyaratan berkas, dan panduan penggunaan asisten AI NESAI untuk konsultasi syarat.',
-    imageUrl: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: 'kunjungan-industri-astra',
-    title: 'Ratusan Siswa TOI Ikuti Kunjungan Industri & Workshop Otomasi di PT Astra',
-    category: 'Kegiatan',
-    date: '25 Agustus 2026',
-    author: 'Jurusan TOI',
-    excerpt: 'Para siswa mengamati langsung proses manufaktur robotik modern, sistem kontrol PLC pabrik cerdas, dan budaya kerja 5S standar Jepang.',
-    imageUrl: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: 'pameran-karya-dkv',
-    title: 'Pameran Desain Kreatif NESAS CREAFEST 2026 Pukau Ribuan Pengunjung',
-    category: 'Ekshibisi',
-    date: '14 Agustus 2026',
-    author: 'Kreatif DKV',
-    excerpt: 'Menampilkan puluhan karya animasi 3D, film dokumenter, poster komersial, dan prototipe aplikasi mobile buatan siswa-siswi berbakat.',
-    imageUrl: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: 'pelatihan-ai-guru',
-    title: 'Tingkatkan Mutu Pembelajaran: Guru SMKN 1 Subang Ikuti Bootcamp AI & Data Science',
-    category: 'Akademik',
-    date: '02 Agustus 2026',
-    author: 'Kurikulum',
-    excerpt: 'Peningkatan kompetensi tenaga pendidik dalam mengintegrasikan AI generatif untuk media pembelajaran interaktif dan modul ajar adaptif.',
-    imageUrl: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=800&q=80',
+    slug: 'ppdb-2026-dibuka',
+    published_at: '2026-09-01T10:00:00Z',
+    excerpt: 'Informasi lengkap jadwal seleksi, syarat berkas, kuota jurusan, dan jalur afirmasi/prestasi untuk calon peserta didik baru.',
+    body: 'Informasi lengkap jadwal seleksi, syarat berkas, kuota jurusan, dan jalur afirmasi/prestasi untuk calon peserta didik baru.',
   },
 ];
 
+const CATEGORIES = ['Semua', 'Pengumuman', 'Kegiatan', 'Prestasi', 'Akademik'];
+
 export default function BeritaPage() {
+  const [newsList, setNewsList] = useState<News[]>([]);
+  const [activeCategory, setActiveCategory] = useState('Semua');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    publicService.getNews({ per_page: 20 })
+      .then((res) => {
+        const list = unwrapList<News>(res);
+        if (list.length > 0) setNewsList(list);
+      })
+      .catch(() => {});
+  }, []);
+
+  const filteredNews = useMemo(() => {
+    const list = newsList.length > 0 ? newsList : DEFAULT_NEWS;
+    return list.filter((item) => {
+      const matchesCat = activeCategory === 'Semua' || (item.excerpt || item.title).toLowerCase().includes(activeCategory.toLowerCase());
+      const matchesSearch = !searchTerm || item.title.toLowerCase().includes(searchTerm.toLowerCase()) || (item.excerpt || '').toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesCat && matchesSearch;
+    });
+  }, [newsList, activeCategory, searchTerm]);
+
   return (
-    <div className="bg-slate-50 min-h-screen">
-      {/* Header Banner */}
-      <section className="relative bg-slate-950 text-white py-16 lg:py-24 overflow-hidden">
-        <div 
-          className="absolute inset-0 bg-cover bg-center opacity-25 filter brightness-50"
-          style={{ backgroundImage: `url('https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=2000&q=80')` }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent" />
+    <main className="bg-[#f8faf8] text-[#172b3a]">
+      <PageHero
+        eyebrow="Berita & Pengumuman"
+        title="Kabar terbaru dari sekolah."
+        description="Informasi kegiatan, prestasi siswa, pengumuman resmi, dan agenda SMKN 1 Subang."
+        image="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=2200&q=90"
+      />
 
-        <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <nav className="flex items-center gap-2 text-xs font-semibold text-slate-400 mb-4">
-            <Link href="/" className="hover:text-cyan-300 transition-colors">Beranda</Link>
-            <ChevronRight className="h-3 w-3" />
-            <span className="text-cyan-300">Berita & Informasi</span>
-          </nav>
-
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-500/20 border border-blue-400/30 px-3.5 py-1 text-xs font-semibold text-cyan-300 mb-4">
-            <Newspaper className="h-3.5 w-3.5 text-cyan-400" />
-            Warta Sekolah
-          </span>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white mb-4">
-            Berita & Pengumuman Sekolah
-          </h1>
-          <p className="text-base sm:text-lg text-slate-300 max-w-3xl leading-relaxed">
-            Ikuti perkembangan terkini seputar kegiatan akademik, prestasi siswa, kemitraan dunia usaha, dan agenda resmi SMKN 1 Subang.
-          </p>
-        </div>
-      </section>
-
-      {/* Grid Berita */}
-      <section className="py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {ALL_NEWS.map((item) => (
-              <article
-                key={item.id}
-                className="flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm hover:shadow-xl transition-all group"
+      {/* Filter and Search Bar */}
+      <section className="border-b border-slate-200 bg-white sticky top-0 z-20 shadow-xs">
+        <div className="mx-auto flex max-w-7xl flex-col sm:flex-row items-center justify-between gap-4 px-5 py-4 sm:px-8">
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setActiveCategory(cat)}
+                className={`rounded-lg px-4 py-2 text-xs font-bold transition-all ${
+                  activeCategory === cat
+                    ? 'border-[#0f1e36] bg-[#0f1e36] text-white'
+                    : 'border border-slate-200 bg-white text-slate-600 hover:border-amber-400'
+                }`}
               >
-                <div className="relative h-56 w-full overflow-hidden bg-slate-100">
-                  <Image
-                    src={item.imageUrl}
-                    alt={item.title}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute top-4 left-4">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-600/90 backdrop-blur-md px-3 py-0.5 text-xs font-semibold text-white">
-                      <Tag className="h-3 w-3" />
-                      {item.category}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex flex-1 flex-col p-6 sm:p-7">
-                  <div className="flex items-center gap-3 text-xs text-slate-500 mb-3">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="h-3.5 w-3.5 text-slate-400" />
-                      {item.date}
-                    </span>
-                    <span>•</span>
-                    <span className="flex items-center gap-1">
-                      <User className="h-3.5 w-3.5 text-slate-400" />
-                      {item.author}
-                    </span>
-                  </div>
-
-                  <h2 className="text-lg sm:text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors mb-3 leading-snug line-clamp-2">
-                    {item.title}
-                  </h2>
-
-                  <p className="text-sm text-slate-600 leading-relaxed line-clamp-3 mb-6">
-                    {item.excerpt}
-                  </p>
-
-                  <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-blue-600">
-                    <span className="inline-flex items-center gap-1 group-hover:gap-2 transition-all">
-                      Baca Selengkapnya
-                      <ArrowRight className="h-3.5 w-3.5" />
-                    </span>
-                  </div>
-                </div>
-              </article>
+                {cat}
+              </button>
             ))}
+          </div>
+
+          <div className="relative w-full sm:w-72">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Cari berita..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-4 py-2 text-xs outline-none focus:border-blue-500 focus:bg-white transition"
+            />
           </div>
         </div>
       </section>
 
-      {/* Promo Bar */}
-      <NesaiPromoBar />
-    </div>
+      {/* Main Articles List */}
+      <section className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:py-24">
+        <div className="grid gap-12 lg:grid-cols-[0.7fr_1.3fr]">
+          <div className="lg:sticky lg:top-28 lg:self-start">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#657c7d]">Kabar sekolah</p>
+            <h2 className="mt-4 font-school-heading text-4xl leading-tight sm:text-5xl">
+              Informasi yang perlu kamu ketahui.
+            </h2>
+            <p className="mt-4 text-sm leading-7 text-slate-600">
+              Berita resmi, pengumuman akademik, dan agenda kegiatan sekolah diperbarui secara berkala oleh tim publikasi humas SMKN 1 Subang.
+            </p>
+          </div>
+
+          <div className="border-t border-[#b9c7c2]">
+            {filteredNews.length === 0 ? (
+              <div className="py-12 text-center text-slate-500 text-sm">
+                Tidak ada berita yang cocok dengan kata kunci atau filter pencarian.
+              </div>
+            ) : (
+              filteredNews.map((item) => {
+                const dateString = item.published_at
+                  ? new Date(item.published_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+                  : (item as any).date || 'Baru';
+
+                const targetSlug = item.slug || String(item.id);
+
+                return (
+                  <article
+                    key={item.id}
+                    className="group grid gap-5 border-b border-[#d9e2de] py-7 sm:grid-cols-[7rem_1fr_auto] items-start transition hover:bg-white/70 px-2 rounded-lg"
+                  >
+                    <div className="text-xs text-[#758b89]">
+                      <time className="block font-semibold flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {dateString}
+                      </time>
+                      <span className="mt-2 inline-block text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 uppercase">
+                        {(item as any).category || 'Berita'}
+                      </span>
+                    </div>
+
+                    <div>
+                      <h3 className="font-school-heading text-2xl font-bold transition group-hover:text-blue-700">
+                        <Link href={`/berita/${targetSlug}`}>
+                          {item.title}
+                        </Link>
+                      </h3>
+                      <p className="mt-2.5 text-sm leading-6 text-slate-600 line-clamp-3">
+                        {item.excerpt || (item.body ? item.body.substring(0, 140) + '...' : '')}
+                      </p>
+                    </div>
+
+                    <Link
+                      href={`/berita/${targetSlug}`}
+                      className="inline-flex items-center gap-1 text-xs font-bold text-slate-700 group-hover:text-blue-600 transition whitespace-nowrap pt-1"
+                    >
+                      <span>Baca</span>
+                      <ArrowUpRight className="h-3.5 w-3.5" />
+                    </Link>
+                  </article>
+                );
+              })
+            )}
+          </div>
+        </div>
+      </section>
+    </main>
   );
 }

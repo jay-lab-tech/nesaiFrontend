@@ -2,24 +2,19 @@
 
 export function NesaiTypingIndicator() {
   return (
-    <div className="nesai-typing-wrapper">
-      <div className="nesai-avatar-sm">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 8V4H8" />
-          <rect width="16" height="12" x="4" y="8" rx="2" />
-          <path d="M2 14h2" />
-          <path d="M20 14h2" />
-          <path d="M15 13v2" />
-          <path d="M9 13v2" />
-        </svg>
-      </div>
-      <div className="nesai-typing-bubble">
-        <div className="nesai-typing-dots">
-          <span className="nesai-dot" />
-          <span className="nesai-dot" />
-          <span className="nesai-dot" />
+    <div className="flex flex-col items-start my-2 animate-in fade-in-50 duration-200">
+      <span className="font-school-heading text-[11px] font-bold tracking-tight mb-1 px-1 text-[#172b3a]">
+        NesAI
+      </span>
+      <div className="flex items-center gap-2 px-4 py-2.5 bg-white border border-[#dce5e1] rounded-2xl rounded-tl-xs shadow-2xs">
+        <div className="flex items-center gap-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#172b3a] animate-bounce [animation-delay:-0.3s]" />
+          <span className="h-1.5 w-1.5 rounded-full bg-[#e7ae32] animate-bounce [animation-delay:-0.15s]" />
+          <span className="h-1.5 w-1.5 rounded-full bg-[#172b3a] animate-bounce" />
         </div>
-        <span className="nesai-typing-label">NESAI sedang mengetik</span>
+        <span className="text-xs text-[#5d6a6e] font-medium">
+          Mencari informasi SMKN 1 Subang...
+        </span>
       </div>
     </div>
   );

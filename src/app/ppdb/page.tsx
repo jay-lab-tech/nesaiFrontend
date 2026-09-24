@@ -1,245 +1,202 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { 
-  FileText, 
-  CheckCircle2, 
-  Bot, 
-  Sparkles, 
-  ChevronRight, 
-  ArrowRight,
-  Users
-} from 'lucide-react';
-import { openNesaiChat } from '@/lib/nesai-events';
-import { NesaiPromoBar } from '@/components/home/NesaiPromoBar';
+import { CheckCircle2, Calendar, FileText, AlertCircle, ArrowUpRight, Sparkles } from 'lucide-react';
+import { PageHero } from '@/components/site/PageHero';
+import { publicService, unwrapItem } from '@/lib/api/public-endpoints';
+import type { Ppdb, PpdbScheduleItem } from '@/types/cms';
+
+const DEFAULT_REQUIREMENTS = [
+  'Ijazah SMP/MTs atau Surat Keterangan Lulus (SKL) resmi.',
+  'Kartu Keluarga (KK) dan Akta Kelahiran calon peserta didik.',
+  'Buku Rapor SMP semester 1 sampai dengan 5 (asli dan fotokopi).',
+  'Surat Keterangan Berkelakuan Baik dari sekolah asal.',
+  'Piagam sertifikat kejuaraan/prestasi (bagi pendaftar jalur prestasi).',
+  'Kartu KIP/KKS/PKH (bagi pendaftar jalur KETM/Afirmasi).',
+];
+
+const DEFAULT_SCHEDULE: PpdbScheduleItem[] = [
+  {
+    stage: 'Tahap 1: Jalur Afirmasi, KETM, & Kejuaraan Prestasi',
+    date: '03 - 07 Juni 2026',
+    desc: 'Pendaftaran online melalui portal resmi Disdik Jabar dan verifikasi berkas sekolah.',
+  },
+  {
+    stage: 'Pengumuman Hasil Seleksi Tahap 1',
+    date: '19 Juni 2026',
+    desc: 'Pengumuman resmi kelulusan tahap 1 dan persiapan daftar ulang.',
+  },
+  {
+    stage: 'Tahap 2: Jalur Prestasi Nilai Rapor Umum',
+    date: '24 - 28 Juni 2026',
+    desc: 'Seleksi berdasarkan akumulasi nilai rapor semester 1 sampai 5.',
+  },
+  {
+    stage: 'Pengumuman Kelulusan & Daftar Ulang Tahap 2',
+    date: '05 Juli 2026',
+    desc: 'Penetapan calon peserta didik baru dan orientasi MPLS sekolah.',
+  },
+];
+
+const DEFAULT_STEPS = [
+  ['01', 'Buat akun & Verifikasi', 'Daftarkan akun di portal resmi PPDB Disdik Jawa Barat dan lakukan validasi data diri.'],
+  ['02', 'Lengkapi Berkas', 'Unggah pindaian dokumen persyaratan sesuai jalur yang dipilih dengan format jelas.'],
+  ['03', 'Pilih Program Keahlian', 'Tentukan pilihan jurusan prioritas di SMKN 1 Subang yang sesuai minat bakatmu.'],
+  ['04', 'Pantau Pengumuman', 'Periksa status seleksi berkala dan lakukan daftar ulang bila dinyatakan diterima.'],
+];
 
 export default function PpdbPage() {
-  const PATHS = [
-    { name: 'Jalur Prestasi Nilai Rapor', quota: '60%', desc: 'Seleksi berdasarkan rata-rata akumulasi nilai rapor semester 1 - 5 mata pelajaran inti.' },
-    { name: 'Jalur Afirmasi / KETM', quota: '15%', desc: 'Bagi keluarga kurang mampu dengan kepemilikan KIP, PKH, atau terdaftar DTKS Kemensos.' },
-    { name: 'Jalur Prestasi Kejuaraan', quota: '10%', desc: 'Sertifikat kejuaraan akademik, olahraga, seni, atau sains tingkat kab/provinsi/nasional.' },
-    { name: 'Jalur Prioritas Terdekat', quota: '10%', desc: 'Berdasarkan radius jarak tempat tinggal terdekat domisili siswa ke SMKN 1 Subang.' },
-    { name: 'Jalur Perpindahan Orang Tua / Anak Guru', quota: '5%', desc: 'Surat tugas mutasi dinas orang tua atau anak kandung tenaga pendidik/kependidikan.' },
-  ];
+  const [ppdb, setPpdb] = useState<Ppdb | null>(null);
 
-  const STEPS = [
-    {
-      step: '01',
-      title: 'Pembuatan Akun & Pendaftaran',
-      desc: 'Calon siswa mendaftar online melalui portal resmi PPDB Jabar dan memilih SMKN 1 Subang.',
-    },
-    {
-      step: '02',
-      title: 'Verifikasi Berkas Dokumen',
-      desc: 'Panitia sekolah memverifikasi kelengkapan berkas fisik dan berkas yang telah diunggah.',
-    },
-    {
-      step: '03',
-      title: 'Uji Kompetensi & Tes Minat Bakat',
-      desc: 'Mengikuti tes tertulis kompetensi dasar, buta warna, dan wawancara peminatan jurusan.',
-    },
-    {
-      step: '04',
-      title: 'Pengumuman Hasil Seleksi',
-      desc: 'Pengumuman kelulusan resmi dapat diakses melalui portal online dan papan pengumuman sekolah.',
-    },
-    {
-      step: '05',
-      title: 'Daftar Ulang & MPLS',
-      desc: 'Calon siswa yang dinyatakan diterima melakukan daftar ulang dan persiapan Masa Pengenalan Lingkungan Sekolah.',
-    },
-  ];
+  useEffect(() => {
+    publicService.getPpdb()
+      .then((res) => {
+        const item = unwrapItem<Ppdb>(res);
+        if (item) setPpdb(item);
+      })
+      .catch(() => {});
+  }, []);
 
-  const REQUIREMENTS = [
-    'Ijazah atau Surat Keterangan Lulus (SKL) SMP/MTs sederajat',
-    'Buku Rapor SMP (Semester 1 s.d. 5) yang telah dilegalisir',
-    'Akta Kelahiran asli dan fotokopi',
-    'Kartu Keluarga (KK) yang diterbitkan minimal 1 tahun',
-    'KTP orang tua / wali',
-    'Surat Keterangan Bebas Buta Warna (khusus jurusan TKJ, RPL, DKV, TOI)',
-    'Surat Pernyataan Tanggung Jawab Mutlak (SPTJM) bermaterai Rp10.000',
-    'Sertifikat / Piagam Kejuaraan asli (khusus pendaftar Jalur Prestasi Kejuaraan)',
-    'Kartu KIP/PKH/KKS bagi pendaftar Jalur Afirmasi',
-  ];
-
-  const QUOTAS = [
-    { code: 'TKJ', name: 'Teknik Komputer & Jaringan', classes: '4 Rombel', capacity: 144 },
-    { code: 'RPL', name: 'Rekayasa Perangkat Lunak', classes: '4 Rombel', capacity: 144 },
-    { code: 'DKV', name: 'Multimedia / DKV', classes: '3 Rombel', capacity: 108 },
-    { code: 'TOI', name: 'Teknik Otomasi Industri', classes: '3 Rombel', capacity: 108 },
-    { code: 'BDP', name: 'Bisnis Digital & Pemasaran', classes: '4 Rombel', capacity: 144 },
-    { code: 'AKL', name: 'Akuntansi & Keuangan Lembaga', classes: '4 Rombel', capacity: 144 },
-  ];
+  const title = ppdb?.title || 'Penerimaan Peserta Didik Baru (PPDB) 2026/2027';
+  const description = ppdb?.description || 'Informasi resmi alur, jadwal, dan persyaratan seleksi masuk SMK Negeri 1 Subang.';
+  const requirements = (ppdb?.requirements && ppdb.requirements.length > 0) ? ppdb.requirements : DEFAULT_REQUIREMENTS;
+  const schedule = (ppdb?.schedule && ppdb.schedule.length > 0) ? ppdb.schedule : DEFAULT_SCHEDULE;
+  const isActive = ppdb?.is_active ?? true;
 
   return (
-    <div className="bg-slate-50 min-h-screen">
-      {/* Header Banner */}
-      <section className="relative bg-slate-950 text-white py-16 lg:py-24 overflow-hidden">
-        <div 
-          className="absolute inset-0 bg-cover bg-center opacity-25 filter brightness-50"
-          style={{ backgroundImage: `url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=2000&q=80')` }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent" />
+    <main className="bg-[#f8faf8] text-[#172b3a]">
+      <PageHero
+        eyebrow="PPDB Online"
+        title="Mulai perjalananmu di SMKN 1 Subang."
+        description={description}
+        image="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=2200&q=90"
+      />
 
-        <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <nav className="flex items-center gap-2 text-xs font-semibold text-slate-400 mb-4">
-            <Link href="/" className="hover:text-cyan-300 transition-colors">Beranda</Link>
-            <ChevronRight className="h-3 w-3" />
-            <span className="text-cyan-300">PPDB 2026/2027</span>
-          </nav>
-
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-500/20 border border-orange-400/30 px-3.5 py-1 text-xs font-semibold text-orange-300 mb-4">
-            <Sparkles className="h-3.5 w-3.5 text-orange-400" />
-            Penerimaan Peserta Didik Baru
-          </span>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white mb-4">
-            Pusat Informasi PPDB 2026/2027
-          </h1>
-          <p className="text-base sm:text-lg text-slate-300 max-w-3xl leading-relaxed">
-            Panduan lengkap alur pendaftaran, jadwal seleksi, persyaratan dokumen, kuota rombel, dan asisten virtual NESAI yang siap memandu kelulusanmu.
-          </p>
-
-          <div className="mt-8 flex flex-wrap gap-4">
-            <a
-              href="https://ppdb.jabarprov.go.id"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-600 px-6 py-3.5 text-sm font-bold text-white shadow-lg hover:from-orange-600 hover:to-amber-700 active:scale-95 transition-all"
-            >
-              <span>Daftar via Portal PPDB Jabar</span>
-              <ArrowRight className="h-4 w-4" />
-            </a>
-
-            <button
-              type="button"
-              onClick={() => openNesaiChat('Halo NESAI, tolong bantu saya memahami syarat berkas dan alur pendaftaran PPDB SMKN 1 Subang 2026.')}
-              className="inline-flex items-center gap-2 rounded-xl border border-cyan-400/50 bg-slate-900/80 px-6 py-3.5 text-sm font-semibold text-cyan-200 backdrop-blur-md hover:bg-cyan-950/60 active:scale-95 transition-all"
-            >
-              <Bot className="h-4 w-4 text-cyan-400" />
-              <span>Tanya Syarat ke NESAI</span>
-            </button>
+      {/* Status Alert Banner */}
+      <section className="bg-[#0f1e36] py-8 text-white">
+        <div className="mx-auto flex max-w-7xl flex-col justify-between gap-5 px-5 sm:flex-row sm:items-center sm:px-8">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className={`inline-block h-2.5 w-2.5 rounded-full ${isActive ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-400">
+                {isActive ? 'Pendaftaran PPDB Sedang Dibuka' : 'Periode PPDB Segera Dibuka'}
+              </p>
+            </div>
+            <h2 className="mt-1 text-lg font-bold text-white sm:text-xl">{title}</h2>
           </div>
-        </div>
-      </section>
-
-      {/* Jalur Pendaftaran */}
-      <section className="py-20 bg-white border-b border-slate-200">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 border border-blue-200 px-3.5 py-1 text-xs font-bold text-blue-700 uppercase tracking-wider mb-3">
-              Jalur Masuk
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-950 tracking-tight">
-              Pilihan Jalur Pendaftaran
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {PATHS.map((item, idx) => (
-              <div
-                key={idx}
-                className="rounded-2xl border border-slate-200 bg-slate-50/50 p-6 shadow-sm hover:bg-white hover:shadow-lg transition-all"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-2xl font-black text-blue-600">{item.quota}</span>
-                  <span className="text-xs font-bold text-slate-500 uppercase">Kuota</span>
-                </div>
-                <h3 className="text-lg font-bold text-slate-900 mb-2">{item.name}</h3>
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">{item.desc}</p>
-              </div>
-            ))}
-          </div>
+          <Link
+            href="/kontak"
+            className="inline-flex w-fit items-center gap-2 bg-amber-400 px-5 py-3 text-xs font-bold text-[#0f1e36] hover:bg-amber-300 transition"
+          >
+            HUBUNGI PANITIA PPDB →
+          </Link>
         </div>
       </section>
 
       {/* Alur Pendaftaran */}
-      <section className="py-20 bg-slate-50">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-100 border border-cyan-200 px-3.5 py-1 text-xs font-bold text-cyan-800 uppercase tracking-wider mb-3">
-              Tahapan Seleksi
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-950 tracking-tight">
-              Alur Pendaftaran Step-by-Step
-            </h2>
-          </div>
+      <section className="mx-auto grid max-w-7xl gap-12 px-5 py-16 sm:px-8 lg:grid-cols-[0.75fr_1.25fr] lg:py-24">
+        <div className="lg:sticky lg:top-28 lg:self-start">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#657c7d]">Alur Pendaftaran</p>
+          <h2 className="mt-4 font-school-heading text-4xl leading-tight sm:text-5xl">
+            Siapkan langkahnya dari sekarang.
+          </h2>
+          <p className="mt-4 text-sm leading-7 text-slate-600">
+            Ikuti seluruh panduan resmi agar proses verifikasi berkas dan seleksi jurusan berjalan lancar tanpa kendala administratif.
+          </p>
+        </div>
+        <div className="border-t border-[#b9c7c2]">
+          {DEFAULT_STEPS.map(([num, stepTitle, desc]) => (
+            <div key={num} className="group grid grid-cols-[3rem_1fr] gap-4 border-b border-[#d9e2de] px-2 py-6 transition hover:bg-white">
+              <span className="text-xs font-bold text-[#7a908e] pt-1">{num}</span>
+              <div>
+                <h3 className="font-school-heading text-2xl font-bold transition group-hover:translate-x-1 text-[#0f1e36]">
+                  {stepTitle}
+                </h3>
+                <p className="mt-2 text-sm leading-6 text-[#5d6a6e]">{desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-            {STEPS.map((item) => (
-              <div
-                key={item.step}
-                className="relative rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between"
-              >
-                <div>
-                  <span className="inline-block rounded-xl bg-blue-600 px-3 py-1 text-sm font-black text-white mb-4">
-                    Langkah {item.step}
+      {/* Jadwal & Persyaratan Grid */}
+      <section className="bg-white py-16 sm:py-20 border-t border-slate-200">
+        <div className="mx-auto max-w-7xl px-5 sm:px-8 grid gap-12 lg:grid-cols-2">
+          {/* Jadwal */}
+          <div className="rounded-3xl border border-slate-200 bg-slate-50/50 p-6 sm:p-8">
+            <div className="flex items-center gap-2 mb-6">
+              <Calendar className="h-5 w-5 text-blue-600" />
+              <h3 className="font-school-heading text-2xl font-bold text-[#0f1e36]">Jadwal Pelaksanaan PPDB</h3>
+            </div>
+            <div className="space-y-6 border-l-2 border-blue-400 pl-4 sm:pl-6 ml-2">
+              {schedule.map((item, idx) => (
+                <div key={idx} className="relative">
+                  <div className="absolute -left-[23px] sm:-left-[31px] top-1 h-3.5 w-3.5 rounded-full border-2 border-white bg-blue-600" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                    {item.date}
                   </span>
-                  <h3 className="text-base font-bold text-slate-900 mb-2">{item.title}</h3>
-                  <p className="text-xs text-slate-600 leading-relaxed">{item.desc}</p>
+                  <h4 className="font-bold text-sm sm:text-base text-slate-900 mt-1.5">{item.stage}</h4>
+                  {item.desc && <p className="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">{item.desc}</p>}
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
+
+          {/* Persyaratan Dokumen */}
+          <div className="rounded-3xl border border-slate-200 bg-slate-50/50 p-6 sm:p-8">
+            <div className="flex items-center gap-2 mb-6">
+              <FileText className="h-5 w-5 text-amber-600" />
+              <h3 className="font-school-heading text-2xl font-bold text-[#0f1e36]">Persyaratan Berkas Pendaftaran</h3>
+            </div>
+            <ul className="space-y-4">
+              {requirements.map((req, idx) => (
+                <li key={idx} className="flex items-start gap-3 rounded-xl bg-white p-3.5 border border-slate-200 shadow-2xs">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                  <span className="text-xs sm:text-sm text-slate-700 font-medium leading-relaxed">{req}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* Dynamic NESAI Consultation Banner */}
+        <div className="mt-12 rounded-3xl border border-emerald-200 bg-gradient-to-r from-emerald-50 via-teal-50 to-cyan-50 p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xs">
+          <div className="space-y-1 text-center sm:text-left">
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100/80 px-2.5 py-0.5 rounded-full inline-block mb-1">
+              Bantuan Konsultasi PPDB
+            </span>
+            <h4 className="text-lg sm:text-xl font-bold text-[#0f1e36]">
+              Butuh Panduan Persyaratan atau Jalur PPDB?
+            </h4>
+            <p className="text-xs sm:text-sm text-slate-600">
+              Tanyakan langsung ke asisten virtual NESAI mengenai kriteria zonasi, prestasi, dan validasi berkas.
+            </p>
+          </div>
+          <Link
+            href="/nesai?topic=ppdb&q=Bagaimana%20persyaratan%20dan%20alur%20pendaftaran%20PPDB%20di%20SMKN%201%20Subang%3F&autoSend=true"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#172b3a] hover:bg-[#09243b] text-white px-5 py-3 text-xs sm:text-sm font-semibold shadow-md shrink-0 transition active:scale-95"
+          >
+            <Sparkles className="h-4 w-4 text-[#e7ae32]" />
+            <span>Tanya NESAI Seputar PPDB</span>
+          </Link>
         </div>
       </section>
 
-      {/* Persyaratan Dokumen & Kuota */}
-      <section className="py-20 bg-white border-y border-slate-200">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-            {/* Requirements */}
-            <div className="lg:col-span-7">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 border border-blue-200 px-3.5 py-1 text-xs font-bold text-blue-700 uppercase tracking-wider mb-3">
-                <FileText className="h-3.5 w-3.5" />
-                Dokumen Berkas
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-950 tracking-tight mb-6">
-                Persyaratan Berkas Dokumen
-              </h2>
-              <ul className="space-y-3">
-                {REQUIREMENTS.map((req, idx) => (
-                  <li key={idx} className="flex items-start gap-3 rounded-xl bg-slate-50 border border-slate-200/80 p-3.5 text-sm text-slate-700">
-                    <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
-                    <span>{req}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Quotas */}
-            <div className="lg:col-span-5">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 border border-amber-200 px-3.5 py-1 text-xs font-bold text-amber-800 uppercase tracking-wider mb-3">
-                <Users className="h-3.5 w-3.5" />
-                Daya Tampung
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-950 tracking-tight mb-6">
-                Kuota Penerimaan Siswa
-              </h2>
-              <div className="rounded-2xl border border-slate-200 divide-y divide-slate-100 overflow-hidden shadow-sm">
-                {QUOTAS.map((quota) => (
-                  <div key={quota.code} className="p-4 flex items-center justify-between bg-white hover:bg-slate-50 transition-colors">
-                    <div>
-                      <p className="font-bold text-slate-900 text-sm">{quota.name}</p>
-                      <p className="text-xs text-slate-500">{quota.classes}</p>
-                    </div>
-                    <div className="text-right">
-                      <span className="font-extrabold text-blue-600 text-base">{quota.capacity}</span>
-                      <p className="text-[10px] text-slate-400">Siswa</p>
-                    </div>
-                  </div>
-                ))}
-                <div className="p-4 bg-slate-950 text-white flex items-center justify-between">
-                  <span className="font-bold text-sm">Total Kuota 2026/2027</span>
-                  <span className="font-black text-cyan-300 text-lg">792 Siswa</span>
-                </div>
-              </div>
-            </div>
+      {/* Catatan Penting */}
+      <section className="bg-[#dfe9e5]">
+        <div className="mx-auto grid max-w-7xl gap-6 px-5 py-14 sm:grid-cols-2 sm:px-8">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#657c7d]">Catatan resmi Disdik</p>
+            <p className="mt-3 text-sm leading-7 text-[#516064]">
+              Seluruh proses pendaftaran dan seleksi PPDB SMK Negeri 1 Subang tidak dipungut biaya (GRATIS). Waspadai segala bentuk pungutan liar dan informasi tidak resmi dari pihak luar.
+            </p>
+          </div>
+          <div className="border-l-2 border-amber-400 pl-5 text-sm leading-7 text-[#516064]">
+            Portal pendaftaran resmi provinsi Jawa Barat dapat diakses langsung melalui situs PPDB Disdik Jabar saat gelombang pendaftaran dibuka.
           </div>
         </div>
       </section>
-
-      {/* Promo Bar */}
-      <NesaiPromoBar />
-    </div>
+    </main>
   );
 }

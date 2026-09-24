@@ -1,278 +1,175 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { 
-  MapPin, 
-  Phone, 
-  Mail, 
-  Clock, 
-  Send, 
-  CheckCircle2, 
-  Bot, 
-  ChevronRight
-} from 'lucide-react';
-import { openNesaiChat } from '@/lib/nesai-events';
-import { NesaiPromoBar } from '@/components/home/NesaiPromoBar';
+import { useEffect, useState } from 'react';
+import { Phone, Mail, MapPin, Globe, Check, Share2 } from 'lucide-react';
+import { PageHero } from '@/components/site/PageHero';
+import { publicService, unwrapItem } from '@/lib/api/public-endpoints';
+import type { School } from '@/types/cms';
 
 export default function KontakPage() {
-  const [submitted, setSubmitted] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    subject: 'Informasi PPDB & Jurusan',
-    message: '',
-  });
+  const [sent, setSent] = useState(false);
+  const [school, setSchool] = useState<School | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitted(true);
-  };
+  useEffect(() => {
+    publicService.getSchool()
+      .then((res) => {
+        const item = unwrapItem<School>(res);
+        if (item) setSchool(item);
+      })
+      .catch(() => {});
+  }, []);
+
+  const phone = school?.phone || '(0260) 411410';
+  const email = school?.email || 'info@smkn1subang.sch.id';
+  const address = school?.address || 'Jl. Arief Rahman Hakim No. 35, Kelurahan Cigadung, Kecamatan Subang, Kabupaten Subang, Jawa Barat 41213.';
+  const website = school?.social_links?.website || 'https://www.smkn1subang.sch.id';
+  const instagram = school?.social_links?.instagram;
+  const youtube = school?.social_links?.youtube;
 
   return (
-    <div className="bg-slate-50 min-h-screen">
-      {/* Header Banner */}
-      <section className="relative bg-slate-950 text-white py-16 lg:py-24 overflow-hidden">
-        <div 
-          className="absolute inset-0 bg-cover bg-center opacity-20 filter brightness-50"
-          style={{ backgroundImage: `url('https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=2000&q=80')` }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent" />
+    <main className="bg-[#f8faf8] text-[#172b3a]">
+      <PageHero
+        eyebrow="Kontak Resmi"
+        title="Mari terhubung dengan sekolah."
+        description="Sampaikan pertanyaan tentang profil, program keahlian vokasi, PPDB, kemitraan industri, dan layanan informasi sekolah."
+        image="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=2200&q=90"
+      />
 
-        <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <nav className="flex items-center gap-2 text-xs font-semibold text-slate-400 mb-4">
-            <Link href="/" className="hover:text-cyan-300 transition-colors">Beranda</Link>
-            <ChevronRight className="h-3 w-3" />
-            <span className="text-cyan-300">Kontak & Lokasi</span>
-          </nav>
-
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-500/20 border border-cyan-400/30 px-3.5 py-1 text-xs font-semibold text-cyan-300 mb-4">
-            <Phone className="h-3.5 w-3.5 text-cyan-400" />
-            Saluran Resmi
-          </span>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white mb-4">
-            Hubungi SMKN 1 Subang
-          </h1>
-          <p className="text-base sm:text-lg text-slate-300 max-w-3xl leading-relaxed">
-            Kami siap melayani kebutuhan informasi seputar PPDB, kerjasama dunia industri, verifikasi alumni, dan layanan administrasi sekolah.
-          </p>
-        </div>
-      </section>
-
-      {/* Content Section */}
-      <section className="py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-            {/* Left: Contact Info & Map */}
-            <div className="lg:col-span-5 space-y-8">
-              <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-                <h2 className="text-xl font-bold text-slate-900 mb-6">Informasi Kontak Resmi</h2>
-                
-                <div className="space-y-6 text-sm text-slate-600">
-                  <div className="flex items-start gap-4">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 border border-blue-200">
-                      <MapPin className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="font-bold text-slate-900">Alamat Sekolah</p>
-                      <p className="mt-1 leading-relaxed">Jl. Arief Rahman Hakim No. 35, Dangdeur, Kec. Subang, Kabupaten Subang, Jawa Barat 41214</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 border border-blue-200">
-                      <Phone className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="font-bold text-slate-900">Telepon & Fax</p>
-                      <p className="mt-1">(0260) 411410</p>
-                      <p className="text-xs text-slate-500">Senin - Jumat (07.30 - 15.30 WIB)</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 border border-blue-200">
-                      <Mail className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="font-bold text-slate-900">Email Resmi</p>
-                      <p className="mt-1">info@smkn1subang.sch.id</p>
-                      <p className="text-xs text-slate-500">ppdb@smkn1subang.sch.id</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 border border-blue-200">
-                      <Clock className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="font-bold text-slate-900">Jam Operasional Pelayanan</p>
-                      <p className="mt-1">Senin – Kamis: 07.30 – 15.30 WIB</p>
-                      <p>Jumat: 07.30 – 15.00 WIB</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Instant AI Helper */}
-              <div className="rounded-3xl border border-cyan-200 bg-gradient-to-br from-cyan-50 to-blue-50 p-6 shadow-sm">
-                <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-cyan-600 text-white shadow-md">
-                    <Bot className="h-6 w-6 text-cyan-200" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-bold text-slate-900">Butuh Jawaban Cepat?</h3>
-                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                      Asisten virtual NESAI siap menjawab pertanyaan umum 24 jam sehari tanpa perlu menunggu jam kerja kantor.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => openNesaiChat()}
-                      className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-cyan-700 hover:text-cyan-900 underline"
-                    >
-                      <span>Buka Chat NESAI Sekarang</span>
-                      <ChevronRight className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right: Message Form & Map */}
-            <div className="lg:col-span-7 space-y-8">
-              <div className="rounded-3xl border border-slate-200 bg-white p-8 sm:p-10 shadow-sm">
-                <h2 className="text-2xl font-extrabold text-slate-900 mb-2">Kirim Pesan / Pengaduan</h2>
-                <p className="text-sm text-slate-600 mb-8">
-                  Isi formulir di bawah ini dan tim pelayanan SMKN 1 Subang akan merespons pesan Anda sesegera mungkin.
-                </p>
-
-                {submitted ? (
-                  <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center">
-                    <CheckCircle2 className="h-12 w-12 text-emerald-600 mx-auto mb-3" />
-                    <h3 className="text-lg font-bold text-slate-900">Pesan Anda Telah Terkirim!</h3>
-                    <p className="text-sm text-slate-600 mt-1">
-                      Terima kasih telah menghubungi kami. Kami akan membalas melalui email atau nomor telepon yang Anda cantumkan.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => setSubmitted(false)}
-                      className="mt-4 rounded-xl bg-slate-900 px-5 py-2 text-xs font-bold text-white hover:bg-slate-800"
-                    >
-                      Kirim Pesan Lain
-                    </button>
-                  </div>
-                ) : (
-                  <form onSubmit={handleSubmit} className="space-y-5">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                          Nama Lengkap *
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={formData.name}
-                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                          placeholder="Masukkan nama Anda"
-                          className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                          Email Aktif *
-                        </label>
-                        <input
-                          type="email"
-                          required
-                          value={formData.email}
-                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                          placeholder="nama@email.com"
-                          className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                          Nomor WhatsApp / HP
-                        </label>
-                        <input
-                          type="tel"
-                          value={formData.phone}
-                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                          placeholder="0812xxxxxxxx"
-                          className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                          Kategori Pertanyaan
-                        </label>
-                        <select
-                          value={formData.subject}
-                          onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                          className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100 bg-white"
-                        >
-                          <option>Informasi PPDB & Jurusan</option>
-                          <option>Kemitraan Industri & Magang</option>
-                          <option>Layanan Legalisir Ijazah & Alumni</option>
-                          <option>Pengaduan / Saran Masyarakat</option>
-                          <option>Lainnya</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                        Pesan Anda *
-                      </label>
-                      <textarea
-                        rows={4}
-                        required
-                        value={formData.message}
-                        onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                        placeholder="Tuliskan pertanyaan atau pesan Anda secara jelas di sini..."
-                        className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100"
-                      />
-                    </div>
-
-                    <button
-                      type="submit"
-                      className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-7 py-3.5 text-sm font-bold text-white shadow-md hover:bg-blue-700 active:scale-95 transition-all"
-                    >
-                      <Send className="h-4 w-4" />
-                      <span>Kirim Pesan Sekarang</span>
-                    </button>
-                  </form>
-                )}
-              </div>
-
-              {/* Map Embed Card */}
-              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm overflow-hidden">
-                <h3 className="text-base font-bold text-slate-900 mb-3 flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-blue-600" />
-                  <span>Lokasi SMKN 1 Subang di Google Maps</span>
-                </h3>
-                <div className="relative h-64 w-full rounded-2xl overflow-hidden border border-slate-200 bg-slate-100">
-                  <iframe
-                    title="Peta Lokasi SMKN 1 Subang"
-                    src="https://maps.google.com/maps?q=SMK+Negeri+1+Subang&t=&z=15&ie=UTF8&iwloc=&output=embed"
-                    className="h-full w-full border-0"
-                    loading="lazy"
-                  />
-                </div>
-              </div>
-            </div>
+      {/* Map & Lokasi */}
+      <section className="bg-white py-14 border-b border-slate-200">
+        <div className="mx-auto grid max-w-7xl gap-0 px-5 sm:px-8 lg:grid-cols-[1fr_0.8fr]">
+          <div
+            className="min-h-[300px] bg-slate-100 bg-cover bg-center rounded-l-2xl"
+            style={{
+              backgroundImage:
+                "url('https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83?auto=format&fit=crop&w=1200&q=85')",
+            }}
+          />
+          <div className="border border-slate-200 p-8 rounded-r-2xl flex flex-col justify-center">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-700">Lokasi kampus</p>
+            <h2 className="font-school-heading mt-3 text-3xl font-bold text-[#0f1e36]">
+              Datang dan kenali lingkungan belajar kami.
+            </h2>
+            <p className="mt-4 text-sm leading-7 text-slate-600 flex items-start gap-2">
+              <MapPin className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+              <span>{address}</span>
+            </p>
+            <a
+              href={`https://maps.google.com/?q=${encodeURIComponent(address)}`}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-6 inline-flex border-b-2 border-amber-400 pb-1 text-sm font-bold text-[#0f1e36] hover:text-amber-700 transition"
+            >
+              BUKA DI GOOGLE MAPS →
+            </a>
           </div>
         </div>
       </section>
 
-      {/* Promo Bar */}
-      <NesaiPromoBar />
-    </div>
+      {/* Detail Kontak & Formulir Pesan */}
+      <section className="mx-auto grid max-w-7xl gap-14 px-5 py-20 sm:px-8 lg:grid-cols-[0.8fr_1.2fr] lg:py-28">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#657c7d]">Informasi resmi</p>
+          <h2 className="mt-3 font-school-heading text-4xl leading-tight sm:text-5xl text-[#0f1e36]">
+            {school?.name || 'SMK Negeri 1 Subang'}
+          </h2>
+          <div className="mt-8 space-y-6 border-t border-[#b9c7c2] pt-6 text-sm leading-6 text-[#5d6a6e]">
+            <div className="flex items-start gap-3">
+              <Phone className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+              <div>
+                <b className="text-[#0f1e36] block">Telepon Kantor</b>
+                <span>{phone}</span>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <Mail className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+              <div>
+                <b className="text-[#0f1e36] block">Email Resmi</b>
+                <a href={`mailto:${email}`} className="hover:underline">{email}</a>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <Globe className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+              <div>
+                <b className="text-[#0f1e36] block">Portal Resmi</b>
+                <a href={website} target="_blank" rel="noreferrer" className="text-[#315e68] font-semibold underline">
+                  {website.replace(/^https?:\/\//, '')}
+                </a>
+              </div>
+            </div>
+
+            {(instagram || youtube) && (
+              <div className="pt-4 border-t border-slate-200 flex items-center gap-4">
+                {instagram && (
+                  <a href={instagram} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-pink-600">
+                    <Share2 className="h-4 w-4 text-pink-600" />
+                    <span>Instagram</span>
+                  </a>
+                )}
+                {youtube && (
+                  <a href={youtube} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-red-600">
+                    <Share2 className="h-4 w-4 text-red-600" />
+                    <span>YouTube</span>
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Contact Form */}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            setSent(true);
+          }}
+          className="border border-slate-200 bg-white p-6 sm:p-10 rounded-2xl shadow-xs"
+        >
+          {sent ? (
+            <div className="py-12 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 mb-4">
+                <Check className="h-6 w-6" />
+              </div>
+              <h3 className="font-school-heading text-2xl font-bold text-slate-900">Pesan Terkirim!</h3>
+              <p className="mt-2 text-sm text-slate-600 max-w-md mx-auto">
+                Terima kasih telah menghubungi SMKN 1 Subang. Pesan Anda telah tercatat dan tim humas kami akan merespons secepatnya.
+              </p>
+            </div>
+          ) : (
+            <>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#657c7d]">Formulir Pertanyaan</p>
+              <h3 className="font-school-heading mt-2 text-2xl font-semibold text-[#0f1e36]">
+                Kirim pesan atau pengaduan.
+              </h3>
+              <div className="mt-6 grid gap-5 sm:grid-cols-2">
+                <input
+                  required
+                  placeholder="Nama Lengkap"
+                  className="border-b border-[#9aaba8] bg-transparent px-0 py-3 text-sm outline-none placeholder:text-[#81928f] focus:border-[#0f1e36] transition"
+                />
+                <input
+                  required
+                  type="email"
+                  placeholder="Alamat Email"
+                  className="border-b border-[#9aaba8] bg-transparent px-0 py-3 text-sm outline-none placeholder:text-[#81928f] focus:border-[#0f1e36] transition"
+                />
+              </div>
+              <textarea
+                required
+                placeholder="Tulis pesan atau pertanyaan Anda di sini..."
+                rows={5}
+                className="mt-6 w-full resize-none border-b border-[#9aaba8] bg-transparent px-0 py-3 text-sm outline-none placeholder:text-[#81928f] focus:border-[#0f1e36] transition"
+              />
+              <button
+                type="submit"
+                className="mt-8 rounded-xl bg-[#0f1e36] px-8 py-3.5 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-slate-800 shadow-sm"
+              >
+                Kirim Pesan
+              </button>
+            </>
+          )}
+        </form>
+      </section>
+    </main>
   );
 }

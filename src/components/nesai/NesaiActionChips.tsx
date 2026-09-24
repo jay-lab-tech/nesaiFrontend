@@ -1,6 +1,8 @@
 'use client';
 
 import Link from 'next/link';
+import { ArrowUpRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { NesaiAction } from '@/types/nesai';
 
 interface NesaiActionChipsProps {
@@ -11,29 +13,34 @@ export function NesaiActionChips({ actions }: NesaiActionChipsProps) {
   if (!actions || actions.length === 0) return null;
 
   return (
-    <div className="nesai-actions">
+    <div className="flex flex-wrap gap-1.5 mt-2 w-full">
       {actions.map((action, index) => {
         if (action.type === 'navigate') {
           return (
-            <Link
+            <Button
               key={index}
-              href={action.path}
-              className="nesai-action-chip"
+              variant="outline"
+              size="sm"
+              asChild
+              className="h-7 px-3 text-xs font-semibold rounded-full border-[#dce5e1] bg-[#f8faf8] text-[#172b3a] hover:bg-[#edf3f0] hover:text-[#09243b] hover:border-[#b9c7c2] transition-all shadow-none"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M15 3h6v6" />
-                <path d="M10 14 21 3" />
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-              </svg>
-              {action.title}
-            </Link>
+              <Link href={action.path} className="inline-flex items-center gap-1.5">
+                <span>{action.title}</span>
+                <ArrowUpRight className="h-3.5 w-3.5 text-[#e7ae32]" />
+              </Link>
+            </Button>
           );
         }
 
         return (
-          <button key={index} className="nesai-action-chip" type="button">
+          <Button
+            key={index}
+            variant="outline"
+            size="sm"
+            className="h-7 px-3 text-xs font-semibold rounded-full border-[#dce5e1] text-[#172b3a] hover:bg-[#edf3f0]"
+          >
             {action.title}
-          </button>
+          </Button>
         );
       })}
     </div>

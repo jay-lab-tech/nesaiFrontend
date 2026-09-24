@@ -1,200 +1,153 @@
-import Image from 'next/image';
-import Link from 'next/link';
-import { 
-  Building2, 
-  Monitor, 
-  Server, 
-  Video, 
-  Wrench, 
-  BookOpen, 
-  Users, 
-  Dumbbell, 
-  ChevronRight,
-  ShieldCheck
-} from 'lucide-react';
-import { NesaiPromoBar } from '@/components/home/NesaiPromoBar';
+'use client';
 
-export const metadata = {
-  title: 'Fasilitas Sekolah — SMKN 1 Subang (NESAS)',
-  description: 'Fasilitas dan sarana prasarana belajar berstandar industri di SMKN 1 Subang.',
-};
+import { useEffect, useState, useMemo } from 'react';
+import { PageHero } from '@/components/site/PageHero';
+import { publicService, unwrapList } from '@/lib/api/public-endpoints';
+import type { Facility } from '@/types/cms';
 
-interface FacilityDetail {
-  id: string;
-  title: string;
-  category: string;
-  description: string;
-  specs: string[];
-  imageUrl: string;
-  icon: React.ComponentType<{ className?: string }>;
-}
-
-const ALL_FACILITIES: FacilityDetail[] = [
-  {
-    id: 'lab-komputer',
-    title: 'Lab Komputer & IoT Engineering',
-    category: 'Laboratorium IT',
-    description: 'Workstation performa tinggi untuk pemrograman web, mobile, basis data enterprise, dan perancangan mikrokontroler sensor Internet of Things.',
-    specs: ['40 PC Core i7 16GB RAM + SSD NVMe', 'Dedicated Gigabit Fiber Optic Network', 'Smart Interactive Flat Panel Display', 'Modul IoT Arduino & ESP32 Board'],
-    imageUrl: 'https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=800&q=80',
-    icon: Monitor,
-  },
-  {
-    id: 'data-center',
-    title: 'Mini Data Center & Server Room',
-    category: 'Infrastruktur Jaringan',
-    description: 'Ruang server mandiri berpendingin presisi yang digunakan siswa TKJ untuk mempelajari arsitektur cloud computing, virtualisasi Proxmox/VMware, dan keamanan siber.',
-    specs: ['Rack Server Enterprise dengan Dual PSU', 'MikroTik CCR & Cisco Catalyst Switches', 'Sistem Pendingin Presisi & UPS Redundan', 'Firewall Hardware & CCTV Monitoring'],
-    imageUrl: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&q=80',
-    icon: Server,
-  },
-  {
-    id: 'studio-multimedia',
-    title: 'Studio Produksi Multimedia & Green Screen',
-    category: 'Kreatif & Broadcast',
-    description: 'Studio kedap suara profesional untuk produksi film pendek, siaran live streaming, fotografi komersial, motion capture, dan animasi visual effect.',
-    specs: ['Cyclorama Wall Green Screen 8x6 meter', 'Kamera Sinema 4K & Lensa Prime', 'Lighting Studio Godox / Aputure Profesional', 'Workstation Render GPU RTX 4080'],
-    imageUrl: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=800&q=80',
-    icon: Video,
-  },
-  {
-    id: 'workshop-otomasi',
-    title: 'Workshop Mekatronika & Robotik Industri',
-    category: 'Manufaktur & Rekayasa',
-    description: 'Bengkel praktik industri berstandar Jerman untuk perakitan sistem kontrol otomasi pabrik, kalibrasi sensor, pneumatik/hidrolik, dan pemrograman lengan robotik.',
-    specs: ['Modul Trainer PLC Siemens S7-1200 & Omron', 'Trainer Elektropneumatik & Elektrohidrolik', 'Lengan Robotik 6-Axis Industri', 'Meja Kalibrasi & Perkakas Standar TEFA'],
-    imageUrl: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
-    icon: Wrench,
-  },
-  {
-    id: 'perpustakaan-digital',
-    title: 'Perpustakaan Digital (E-Library)',
-    category: 'Pusat Literasi',
-    description: 'Ruang baca modern bernuansa nyaman dengan ribuan koleksi buku cetak, portal e-book interaktif, akses jurnal ilmiah vokasi, dan area diskusi kelompok.',
-    specs: ['10 PC Riset Khusus Akses E-Library', 'Ribuan Koleksi E-Book Berlisensi Kemdikbud', 'Area Diskusi & Bean Bag Santai', 'WiFi Khusus Kecepatan Tinggi 100 Mbps'],
-    imageUrl: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&w=800&q=80',
-    icon: BookOpen,
-  },
-  {
-    id: 'aula-graha-nesas',
-    title: 'Aula Pertemuan Graha NESAS',
-    category: 'Gedung Akbar',
-    description: 'Auditorium megah berkapasitas 1.500 orang dengan tata suara akustik profesional untuk job fair karir industri, pameran produk inovasi, dan wisuda.',
-    specs: ['Kapasitas Hingga 1.500 Tamu Undangan', 'Videotron P2.5 High Definition 8x4 meter', 'Line Array Sound System Profesional', 'Full Air Conditioner & Ruang Transit VIP'],
-    imageUrl: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=800&q=80',
-    icon: Building2,
-  },
-  {
-    id: 'sarana-olahraga',
-    title: 'Sarana Olahraga & Lapangan Terpadu',
-    category: 'Kebugaran Siswa',
-    description: 'Kompleks olahraga multi-fungsi untuk menjaga kebugaran, kegiatan ekstrakurikuler basket, voli, futsal, dan upacara bendera mingguan.',
-    specs: ['Lapangan Futsal & Basket Standar Nasional', 'Tribun Penonton dengan Peneduh', 'Perlengkapan Atletik & Tenis Meja', 'Pencahayaan Malam LED Floodlight'],
-    imageUrl: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=800&q=80',
-    icon: Dumbbell,
-  },
-  {
-    id: 'masjid-sekolah',
-    title: 'Masjid Sekolah Asy-Syuhada NESAS',
-    category: 'Ibadah & Karakter',
-    description: 'Pusat pembinaan kerohanian Islam dan pembentukan akhlak mulia siswa melalui sholat berjamaah, keputrian, dan kajian mentoring keagamaan.',
-    specs: ['Kapasitas Sholat 1.000 Jamaah', 'Area Wudhu Bersih & Representatif', 'Perpustakaan Mini Buku Islam & Al-Quran', 'Sound System Masjid Khusus Tartil'],
-    imageUrl: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=800&q=80',
-    icon: Users,
-  },
+const DEFAULT_LABS = [
+  { number: '01', title: 'Lab Rekayasa Perangkat Lunak (RPL)', category: 'Laboratorium & Bengkel', desc: 'Komputer spesifikasi tinggi, dual-monitor workstation, dan server lokal.' },
+  { number: '02', title: 'Lab Teknik Komputer & Jaringan (TKJ)', category: 'Laboratorium & Bengkel', desc: 'Rack server, router Cisco & MikroTik, fiber optic splicer, dan simulator jaringan.' },
+  { number: '03', title: 'Lab Multimedia & DKV', category: 'Laboratorium & Bengkel', desc: 'Drawing tablet, studio green screen, kamera sinematik, dan lighting profesional.' },
+  { number: '04', title: 'Bengkel Teknik Otomasi Industri (TOI)', category: 'Laboratorium & Bengkel', desc: 'Trainer PLC, sistem pneumatik/hidrolik, lengan robotik, dan instrumen kalibrasi.' },
+  { number: '05', title: 'Lab Bisnis Digital & Retail', category: 'Laboratorium & Bengkel', desc: 'Sistem kasir POS modern, display merchandise, dan studio live selling e-commerce.' },
+  { number: '06', title: 'Lab Bank Mini & Akuntansi (AKL)', category: 'Laboratorium & Bengkel', desc: 'Mesin hitung uang, teller counter terpadu, dan software akuntansi Accurate/MYOB.' },
+  { number: '07', title: 'Lapangan Olahraga Multifungsi', category: 'Fasilitas Olahraga', desc: 'Lapangan basket, futsal, dan voli berstandar kejuaraan tingkat kabupaten.' },
+  { number: '08', title: 'Masjid Al-Hikmah SMKN 1 Subang', category: 'Sarana Ibadah', desc: 'Pusat kegiatan rohani, shalat berjamaah, dan pembinaan karakter religius siswa.' },
+  { number: '09', title: 'Perpustakaan & Ruang Baca Digital', category: 'Fasilitas Umum', desc: 'Ribuan koleksi buku fisik, e-library portal, dan area belajar mandiri ber-AC.' },
+  { number: '10', title: 'Aula Graha Puspa Serbaguna', category: 'Fasilitas Umum', desc: 'Gedung pertemuan berkapasitas 1.000 orang untuk seminar, pameran karya, dan wisuda.' },
 ];
 
+const CATEGORIES = ['Semua', 'Laboratorium & Bengkel', 'Fasilitas Olahraga', 'Fasilitas Umum', 'Sarana Ibadah'];
+
 export default function FasilitasPage() {
+  const [facilities, setFacilities] = useState<Facility[]>([]);
+  const [activeCategory, setActiveCategory] = useState('Semua');
+
+  useEffect(() => {
+    publicService.getFacilities()
+      .then((res) => {
+        const list = unwrapList<Facility>(res);
+        if (list.length > 0) setFacilities(list);
+      })
+      .catch(() => {});
+  }, []);
+
+  const displayList = useMemo(() => {
+    if (facilities.length > 0) {
+      const filtered = activeCategory === 'Semua'
+        ? facilities
+        : facilities.filter((f) => (f.category || '').toLowerCase().includes(activeCategory.toLowerCase()));
+
+      return filtered.map((f, idx) => ({
+        number: String(idx + 1).padStart(2, '0'),
+        title: f.name,
+        category: f.category || 'Fasilitas Sekolah',
+        desc: f.description || 'Fasilitas sarana dan prasarana resmi pendukung pembelajaran di SMKN 1 Subang.',
+      }));
+    }
+
+    if (activeCategory === 'Semua') return DEFAULT_LABS;
+    return DEFAULT_LABS.filter((d) => d.category.toLowerCase().includes(activeCategory.toLowerCase()));
+  }, [facilities, activeCategory]);
+
   return (
-    <div className="bg-slate-50 min-h-screen">
-      {/* Header Banner */}
-      <section className="relative bg-slate-950 text-white py-16 lg:py-24 overflow-hidden">
-        <div 
-          className="absolute inset-0 bg-cover bg-center opacity-25 filter brightness-50"
-          style={{ backgroundImage: `url('https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=2000&q=80')` }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent" />
+    <main className="bg-[#f8faf8] text-[#172b3a]">
+      <PageHero
+        eyebrow="Fasilitas"
+        title="Ruang belajar untuk mencoba dan mencipta."
+        description="Fasilitas sekolah mendukung pembelajaran praktik di setiap program keahlian dengan sarana dan prasarana terstandar industri."
+        image="https://images.unsplash.com/photo-1498243691581-b145c3f54a5a?auto=format&fit=crop&w=2200&q=90"
+      />
 
-        <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <nav className="flex items-center gap-2 text-xs font-semibold text-slate-400 mb-4">
-            <Link href="/" className="hover:text-cyan-300 transition-colors">Beranda</Link>
-            <ChevronRight className="h-3 w-3" />
-            <span className="text-cyan-300">Fasilitas Belajar</span>
-          </nav>
-
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-500/20 border border-cyan-400/30 px-3.5 py-1 text-xs font-semibold text-cyan-300 mb-4">
-            <ShieldCheck className="h-3.5 w-3.5 text-cyan-400" />
-            Sarana Berstandar Industri
-          </span>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white mb-4">
-            Fasilitas Belajar & Sarana Prasarana
-          </h1>
-          <p className="text-base sm:text-lg text-slate-300 max-w-3xl leading-relaxed">
-            Mendukung pembelajaran praktikum kejuruan dengan teknologi modern yang setara dengan lingkungan kerja industri sesungguhnya.
-          </p>
+      {/* Filter Tabs */}
+      <section className="border-b border-slate-200 bg-white">
+        <div className="mx-auto flex max-w-7xl flex-wrap gap-2 px-5 py-4 sm:px-8">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => setActiveCategory(cat)}
+              className={`rounded-lg px-4 py-2 text-xs font-bold transition-all ${
+                activeCategory === cat
+                  ? 'bg-[#0f1e36] text-white shadow-sm'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
         </div>
       </section>
 
-      {/* Grid Fasilitas */}
-      <section className="py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {ALL_FACILITIES.map((facility) => {
-              const Icon = facility.icon;
-              return (
-                <div
-                  key={facility.id}
-                  className="flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm hover:shadow-xl transition-all group"
-                >
-                  <div className="relative h-60 w-full overflow-hidden bg-slate-100">
-                    <Image
-                      src={facility.imageUrl}
-                      alt={facility.title}
-                      fill
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
-                    <div className="absolute top-4 left-4">
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-900/80 backdrop-blur-md px-3 py-1 text-xs font-semibold text-white">
-                        <Icon className="h-3.5 w-3.5 text-cyan-400" />
-                        {facility.category}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-1 flex-col p-6 sm:p-7">
-                    <h3 className="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors mb-2">
-                      {facility.title}
-                    </h3>
-                    <p className="text-sm text-slate-600 leading-relaxed mb-6">
-                      {facility.description}
-                    </p>
-
-                    {/* Specs Box */}
-                    <div className="mt-auto pt-4 border-t border-slate-100">
-                      <p className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">
-                        Fitur & Spesifikasi:
-                      </p>
-                      <ul className="space-y-1.5 text-xs text-slate-600">
-                        {facility.specs.map((spec, idx) => (
-                          <li key={idx} className="flex items-center gap-1.5">
-                            <span className="h-1.5 w-1.5 rounded-full bg-cyan-500 shrink-0" />
-                            <span>{spec}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+      {/* Highlight Box */}
+      <section className="bg-white py-16 sm:py-20">
+        <div className="mx-auto grid max-w-7xl gap-8 px-5 sm:px-8 lg:grid-cols-[1.2fr_0.8fr]">
+          <div
+            className="min-h-[300px] bg-cover bg-center rounded-2xl shadow-sm"
+            style={{
+              backgroundImage:
+                "url('https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1200&q=85')",
+            }}
+          />
+          <div className="border border-slate-200 rounded-2xl p-7 flex flex-col justify-center">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-700">Lingkungan belajar</p>
+            <h2 className="mt-3 font-school-heading text-3xl font-bold leading-tight text-[#0f1e36]">
+              Fasilitas yang mendukung proses praktik.
+            </h2>
+            <p className="mt-4 text-sm leading-7 text-slate-600">
+              Pembelajaran vokasi membutuhkan ruang yang memungkinkan siswa mencoba, membuat, menguji, dan menyempurnakan kompetensi keahliannya.
+            </p>
+            <div className="mt-7 grid grid-cols-2 gap-4 border-t border-slate-200 pt-5">
+              <span className="text-sm text-slate-600">
+                <b className="block font-school-heading text-2xl text-[#0f1e36]">
+                  {facilities.length > 0 ? facilities.length : '10+'}
+                </b>
+                Fasilitas Terdaftar
+              </span>
+              <span className="text-sm text-slate-600">
+                <b className="block font-school-heading text-2xl text-[#0f1e36]">50–52</b>
+                Ruang Kelas Teori
+              </span>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Promo Bar */}
-      <NesaiPromoBar />
-    </div>
+      {/* Facilities List Grid */}
+      <section className="mx-auto grid max-w-7xl gap-12 px-5 py-20 sm:px-8 lg:grid-cols-[0.7fr_1.3fr] lg:py-28">
+        <div className="lg:sticky lg:top-28 lg:self-start">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#657c7d]">Data fasilitas</p>
+          <h2 className="mt-4 font-school-heading text-4xl leading-tight sm:text-5xl">
+            Sarana & prasarana sesuai standar kompetensi.
+          </h2>
+          <p className="mt-5 text-base leading-7 text-[#5d6a6e]">
+            SMKN 1 Subang terus memperbarui inventaris alat praktik laboratorium dan fasilitas pendukung lainnya guna menjamin kualitas pembelajaran siswa.
+          </p>
+        </div>
+
+        <div className="border-t border-[#b9c7c2]">
+          {displayList.map((item) => (
+            <div
+              key={item.title + item.number}
+              className="group grid grid-cols-[3rem_1fr] gap-4 border-b border-[#d9e2de] px-2 py-6 transition hover:bg-white"
+            >
+              <span className="text-xs font-bold text-[#7a908e] pt-1">{item.number}</span>
+              <div>
+                <span className="text-[10px] font-bold tracking-wider uppercase text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                  {item.category}
+                </span>
+                <h3 className="font-school-heading text-xl font-bold mt-2 transition group-hover:translate-x-1 text-[#0f1e36]">
+                  {item.title}
+                </h3>
+                <p className="mt-2 text-sm text-[#5d6a6e] leading-relaxed">
+                  {item.desc}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    </main>
   );
 }

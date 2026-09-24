@@ -18,6 +18,16 @@ export interface NesaiChatResponse {
   message: string | null;
 }
 
+export interface NesaiContext {
+  page?: string;
+  path?: string;
+  topic?: 'jurusan' | 'ppdb' | 'profil' | 'fasilitas' | 'berita' | 'alumni' | 'kontak' | string;
+  major?: string;
+  majorName?: string;
+  sourceUrl?: string;
+  metadata?: Record<string, unknown>;
+}
+
 export interface ChatMessage {
   id: string;
   sender: 'user' | 'nesai';
@@ -26,5 +36,6 @@ export interface ChatMessage {
   intent?: string;
   sources?: string[];
   actions?: NesaiAction[];
+  context?: NesaiContext;
   isError?: boolean;
 }

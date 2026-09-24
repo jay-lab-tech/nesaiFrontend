@@ -52,8 +52,14 @@ export function NesaiPromoBar() {
                   <button
                     key={idx}
                     type="button"
-                    onClick={() => openNesaiChat(prompt)}
-                    className="rounded-full bg-white border border-cyan-300/80 px-3 py-1.5 text-xs font-medium text-slate-700 hover:border-cyan-500 hover:text-cyan-800 hover:bg-cyan-50 shadow-2xs transition-all truncate max-w-xs text-left"
+                    onClick={() =>
+                      openNesaiChat({
+                        prompt,
+                        context: { page: 'promobar', topic: 'general' },
+                        autoSend: true,
+                      })
+                    }
+                    className="rounded-full bg-white border border-cyan-300/80 px-3 py-1.5 text-xs font-medium text-slate-700 hover:border-cyan-500 hover:text-cyan-800 hover:bg-cyan-50 shadow-2xs transition-all truncate max-w-xs text-left cursor-pointer"
                   >
                     💬 {prompt}
                   </button>

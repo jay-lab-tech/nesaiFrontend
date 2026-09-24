@@ -1,52 +1,36 @@
 # 🚀 Update Progress: Chatbot Virtual Assistant "NESAI"
 
 Halo Tim! 👋  
-Berikut adalah rangkuman progress implementasi asisten virtual **NESAI (SMKN 1 Subang)** pada website frontend ini. Catatan ini dibuat agar semua anggota tim—baik pengembang, desainer, maupun pengelola konten—bisa dengan mudah memahami apa saja yang sudah selesai dibuat dan bagaimana cara mencobanya.
+Berikut adalah rangkuman progress implementasi asisten virtual **NESAI (SMKN 1 Subang)** pada website frontend ini. Catatan ini telah diperbarui setelah penyelarasan dengan **Blueprint UI/UX Produk NESAS** dan standar komponen **shadcn/ui**.
 
 ---
 
-## 📌 Apa yang Sudah Selesai?
+## 📌 Apa Saja yang Telah Disempurnakan?
 
-Seluruh pondasi dan antarmuka (UI) chatbot NESAI sekarang sudah aktif dan terpasang langsung di website:
+### 1. Refactor Penuh ke Standar Komponen shadcn/ui
+Sesuai arahan teknis dan konfigurasi project di `components.json`, seluruh elemen UI chatbot kini dibangun di atas komponen atomik resmi:
+- **`Card` (`src/components/ui/card.tsx`)**: Menjadi kontainer jendela percakapan yang kokoh dan rapi.
+- **`Button` (`src/components/ui/button.tsx`)**: Digunakan untuk launcher pemicu chat, tombol navigasi rute (*action chips*), tombol pertanyaan cepat, tombol header, dan tombol kirim pesan.
+- **`Badge` (`src/components/ui/badge.tsx`)**: Menampilkan referensi sumber data resmi (*sources*) dan badge navigator.
+- **`Avatar` (`src/components/ui/avatar.tsx`)**: Menampilkan identitas visual NESAI.
+- **`ScrollArea` (`src/components/ui/scroll-area.tsx`)**: Menghadirkan area scroll percakapan yang sangat halus (*smooth*) dan konsisten di berbagai browser.
+- **`Textarea` (`src/components/ui/textarea.tsx`)**: Input form yang fleksibel dan responsif.
+- **`lucide-react`**: Menggantikan seluruh SVG manual dengan set ikon standar (`Sparkles`, `ArrowUpRight`, `BookOpen`, `Compass`, `RotateCcw`, `X`, `ArrowUp`).
 
-### 1. Tombol Chat Melayang (Floating Button)
-- Di pojok kanan bawah layar, ada tombol bulat bergradien biru-ungu dengan ikon balon obrolan.
-- Terdapat lampu titik hijau kecil berkedip yang menandakan asisten siap melayani pengunjung.
-- Efek transisi halus saat tombol diklik untuk membuka atau menutup jendela chat.
+### 2. Penyelarasan Desain dengan Blueprint (Bebas "AI-Slop")
+Sesuai instruksi pada *UI/UX Blueprint* Bagian 2, 3, dan 41:
+- ❌ **Dihilangkan:** Efek gradient ungu AI generik, neon berlebihan, glassmorphism buram yang berat, dan kartu-kartu mengambang acak.
+-  **Diterapkan:**
+  - **Identitas Institusional:** Warna *Slate Navy* dan *NESAS Blue* yang solid, bersih, profesional, dan berkarakter sekolah vokasi modern.
+  - **Pill Launcher "Tanya NESAI":** Di desktop tampil sebagai tombol kapsul elegan bertuliskan *"Tanya NESAI"* dengan lampu status hijau halus (bukan sekadar ikon robot biasa, sesuai Blueprint Bab 5 & 28).
+  - **Subtle AI Indicator:** Menggunakan animasi lembut *"Mencari informasi NESAS..."* saat proses temu-kembali data berlangsung (sesuai Blueprint Bab 27).
+  - **Balon Percakapan Berstruktur:** Format jawaban memisahkan dengan jelas antara Teks Penjelasan $\rightarrow$ Rekomendasi Navigasi (*Action Chips*) $\rightarrow$ Sumber Resmi Sekolah.
 
-### 2. Jendela Percakapan yang Elegan & Modern
-- Mengusung tema modern dengan efek kaca buram (*glassmorphism*) dan header bertuliskan **"NESAI - Asisten Virtual SMKN 1 Subang"**.
-- Di bagian atas tersedia tombol **Reset Percakapan** (jika ingin mulai dari awal lagi) dan tombol **Tutup/Minimize**.
-
-### 3. Balon Pesan & Tampilan Rapi
-- **Pesan Pengguna:** Berada di sisi kanan dengan warna biru gradien.
-- **Pesan NESAI:** Berada di sisi kiri, dilengkapi logo bot NESAI.
-- **Teks Rapi (Markdown):** Jawaban bot sudah otomatis mendukung teks tebal, daftar poin (bullet), nomor urut, dan link aktif sehingga penjelasan panjang tidak menumpuk dan enak dibaca.
-
-### 4. Tombol Navigasi Halaman Langsung (*Action Chips*)
-- Jika NESAI memberikan rekomendasi halaman (misalnya: *"Lihat info jurusan"* atau *"Buka halaman PPDB"*), akan muncul tombol/chip interaktif di bawah jawabannya.
-- Pengunjung cukup sekali klik pada tombol tersebut untuk langsung berpindah ke halaman yang dimaksud tanpa perlu mencari di menu navigasi utama.
-
-### 5. Badge Sumber Data (*Source Badges*)
-- Setiap kali bot mengambil data dari dokumen sekolah, di bagian bawah pesan akan ditampilkan label sumber (contoh: *Sumber: Informasi Jurusan SMKN 1 Subang*), sehingga pengunjung tahu jawaban tersebut resmi dan akurat.
-
-### 6. Pertanyaan Populer / Cepat (*Quick Suggestions*)
-- Saat percakapan baru pertama kali dibuka, NESAI langsung menyapa ramah dan menyediakan pilihan pertanyaan instan:
-  - 🎓 *Apa saja jurusan di SMKN 1 Subang?*
-  - 📋 *Kapan PPDB dibuka & apa persyaratannya?*
-  - 📍 *Di mana alamat dan kontak SMKN 1 Subang?*
-  - 🏫 *Apa saja fasilitas sekolah?*
-- Pengunjung cukup klik salah satu pertanyaan tanpa harus mengetik panjang lebar.
-
-### 7. Animasi Mengetik (*Typing Indicator*)
-- Ketika NESAI sedang berpikir atau menunggu respon dari backend AI, akan muncul animasi tiga titik melompat bertuliskan *"NESAI sedang mengetik"*.
-
-### 8. Percakapan Tidak Hilang Saat Pindah Halaman
-- Obrolan disimpan sementara di sesi browser (*session storage*). Jadi ketika pengunjung mengklik tombol navigasi ke halaman lain, riwayat chat tetap tersimpan dan tidak terhapus.
-
-### 9. Ramah Layar Ponsel & Komputer
-- Di desktop/laptop, jendela obrolan tampil proporsional di sudut kanan bawah.
-- Di layar HP/smartphone, jendela chat otomatis menyesuaikan lebar layar secara penuh agar nyaman digunakan dengan satu tangan.
+### 3. Logika & Alur Kontrak Tetap Terjaga 100%
+- Menghubungi endpoint backend Laravel `POST /api/v1/nesai/chat`.
+- Navigasi internal ke halaman sekolah (`/jurusan`, `/ppdb`, dll.) menggunakan `next/link` terintegrasi.
+- Riwayat percakapan tetap tersimpan di `sessionStorage` sehingga tidak terhapus saat pengunjung berpindah halaman.
+- Penanganan error anggun jika server backend belum dihidupkan.
 
 ---
 
@@ -58,30 +42,17 @@ Seluruh pondasi dan antarmuka (UI) chatbot NESAI sekarang sudah aktif dan terpas
    ```
 2. Buka browser dan kunjungi:
    👉 **[http://localhost:3000](http://localhost:3000)**
-3. Lihat ke pojok kanan bawah, klik tombol obrolan NESAI.
-4. Coba klik pertanyaan rekomendasi atau ketik teks sapaan seperti *"Halo"*.
-
-> **Catatan Koneksi ke AI:**
-> Frontend sudah diarahkan ke endpoint backend Laravel di `http://localhost:8000/api/v1/nesai/chat`.  
-> - Jika backend Laravel aktif dengan Gemini API, NESAI akan menjawab secara cerdas via AI.  
-> - Jika backend Laravel sedang dimatikan, NESAI tidak akan crash, melainkan menampilkan pesan ramah bahwa server sedang offline dan menyarankan untuk mencoba lagi nanti.
+3. Perhatikan pojok kanan bawah:
+   - Di layar laptop/komputer, akan terlihat tombol kapsul elegan **"✨ Tanya NESAI"**.
+   - Klik tombol tersebut untuk membuka jendela percakapan.
+4. Coba klik pertanyaan rekomendasi yang tersedia atau ketik pertanyaan seputar SMKN 1 Subang.
 
 ---
 
-## 📂 Struktur File yang Dikerjakan
+## 📂 Struktur File Terkini
 
-Bagi tim teknis yang ingin meninjau kodenya:
+- **Komponen Atomik shadcn/ui:** `src/components/ui/` (`button.tsx`, `badge.tsx`, `card.tsx`, `avatar.tsx`, `scroll-area.tsx`, `textarea.tsx`)
+- **Fitur Chatbot NESAI:** `src/components/nesai/` (`NesaiChatWidget.tsx`, `NesaiHeader.tsx`, `NesaiMessageList.tsx`, `NesaiMessageItem.tsx`, `NesaiActionChips.tsx`, `NesaiSourceBadges.tsx`, `NesaiQuickReplies.tsx`, `NesaiTypingIndicator.tsx`, `NesaiChatInput.tsx`)
+- **Utilitas & Hooks:** `src/lib/utils.ts`, `src/lib/api/nesai.ts`, `src/hooks/useNesaiChat.ts`
 - **Tipe Data:** `src/types/nesai.ts`
-- **Jalur Komunikasi API:** `src/lib/api/nesai.ts`
-- **Pengatur Alur Pesan (Hook):** `src/hooks/useNesaiChat.ts`
-- **Komponen Tampilan:** `src/components/nesai/` (berisi widget, header, list pesan, input bar, dll.)
-- **Desain & Animasi:** `src/app/nesai-chat.css`
-- **Integrasi Halaman Utama:** `src/app/layout.tsx`
-
----
-
-## 🎯 Langkah Selanjutnya (Next Steps)
-- Menguji integrasi langsung dengan backend Laravel saat API Gemini sudah terkonfigurasi penuh.
-- Penyesuaian tautan rute internal tambahan jika halaman-halaman website (seperti detail profil atau kontak) mulai diisi konten final.
-
-Semoga catatan ini membantu tim dalam memantau perkembangan fitur NESAI! Jika ada masukan tampilan atau alur, silakan diskusikan bersama. 🚀
+- **Styling Khusus Prose:** `src/app/nesai-chat.css`

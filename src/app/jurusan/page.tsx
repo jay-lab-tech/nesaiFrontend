@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { 
   Network, 
@@ -18,12 +19,16 @@ import {
 } from 'lucide-react';
 import { openNesaiChat } from '@/lib/nesai-events';
 import { NesaiPromoBar } from '@/components/home/NesaiPromoBar';
+import { publicService, unwrapList } from '@/lib/api/public-endpoints';
+import type { Major } from '@/types/cms';
 
 interface MajorDetail {
   id: string;
+  slug: string;
   code: string;
   name: string;
   badge: string;
+  logo?: string | null;
   icon: React.ComponentType<{ className?: string }>;
   color: string;
   summary: string;
@@ -33,9 +38,10 @@ interface MajorDetail {
   promptQuestion: string;
 }
 
-const MAJORS_DATA: MajorDetail[] = [
+const DEFAULT_MAJORS_DATA: MajorDetail[] = [
   {
     id: 'tkj',
+    slug: 'tkj',
     code: 'TKJ',
     name: 'Teknik Komputer & Jaringan',
     badge: 'Infrastruktur & Cloud',
@@ -48,20 +54,22 @@ const MAJORS_DATA: MajorDetail[] = [
     promptQuestion: 'Jelaskan prospek kerja, mata pelajaran, dan sertifikasi di jurusan Teknik Komputer & Jaringan (TKJ) SMKN 1 Subang.',
   },
   {
-    id: 'rpl',
-    code: 'RPL',
-    name: 'Rekayasa Perangkat Lunak',
+    id: 'pplg',
+    slug: 'pplg',
+    code: 'PPLG',
+    name: 'Pengembangan Perangkat Lunak & Gim (PPLG)',
     badge: 'Software & AI Development',
     icon: Code2,
     color: 'from-indigo-600 to-blue-600',
-    summary: 'Fokus pada pemrograman berorientasi objek, perancangan basis data relasional & NoSQL, pengembangan web full-stack modern, mobile application (Flutter/React Native), dan integrasi AI.',
-    skills: ['Full-Stack Web (Next.js, Laravel, Node.js)', 'Mobile Apps (Flutter / Android)', 'Database Engineering (PostgreSQL, MySQL)', 'API Integration & Cloud Deployment', 'Git & Software Testing'],
+    summary: 'Fokus pada pemrograman berorientasi objek, perancangan basis data relasional & NoSQL, pengembangan web full-stack modern, mobile application (Flutter/React Native), game development, dan integrasi AI.',
+    skills: ['Full-Stack Web (Next.js, Laravel, Node.js)', 'Mobile Apps (Flutter / Android)', 'Database Engineering (PostgreSQL, MySQL)', 'Game Development 2D/3D', 'Git & Software Testing'],
     certifications: ['BNSP Junior Web Developer', 'Oracle Certified Java Associate', 'Google Cloud Certified Associate'],
-    careers: ['Full-Stack Developer', 'Frontend / Backend Engineer', 'Mobile App Developer', 'Software QA Tester', 'AI Prompt & Solution Engineer'],
-    promptQuestion: 'Apa saja materi coding, portofolio yang dibuat, dan prospek karir jurusan Rekayasa Perangkat Lunak (RPL)?',
+    careers: ['Full-Stack Developer', 'Frontend / Backend Engineer', 'Mobile App Developer', 'Game Programmer', 'Software QA Tester'],
+    promptQuestion: 'Apa saja materi coding, portofolio yang dibuat, dan prospek karir jurusan Pengembangan Perangkat Lunak dan Gim (PPLG)?',
   },
   {
     id: 'dkv',
+    slug: 'dkv',
     code: 'DKV',
     name: 'Multimedia & Desain Komunikasi Visual',
     badge: 'Industri Kreatif Digital',
@@ -75,6 +83,7 @@ const MAJORS_DATA: MajorDetail[] = [
   },
   {
     id: 'toi',
+    slug: 'toi',
     code: 'TOI',
     name: 'Teknik Otomasi Industri',
     badge: 'Mekatronika & Robotik',
@@ -88,6 +97,7 @@ const MAJORS_DATA: MajorDetail[] = [
   },
   {
     id: 'bdp',
+    slug: 'bdp',
     code: 'BDP',
     name: 'Bisnis Digital & Pemasaran',
     badge: 'Digital Commerce & Marketing',
@@ -101,6 +111,7 @@ const MAJORS_DATA: MajorDetail[] = [
   },
   {
     id: 'akl',
+    slug: 'akl',
     code: 'AKL',
     name: 'Akuntansi & Keuangan Lembaga',
     badge: 'Keuangan & Perbankan',
@@ -114,7 +125,67 @@ const MAJORS_DATA: MajorDetail[] = [
   },
 ];
 
+const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  tkj: Network,
+  rpl: Code2,
+  pplg: Code2,
+  dkv: Palette,
+  toi: Cpu,
+  bdp: TrendingUp,
+  akl: Calculator,
+};
+
+const COLOR_MAP: Record<string, string> = {
+  tkj: 'from-blue-600 to-cyan-600',
+  rpl: 'from-indigo-600 to-blue-600',
+  pplg: 'from-indigo-600 to-blue-600',
+  dkv: 'from-purple-600 to-pink-600',
+  toi: 'from-teal-600 to-emerald-600',
+  bdp: 'from-amber-600 to-orange-600',
+  akl: 'from-sky-600 to-blue-700',
+};
+
 export default function JurusanPage() {
+  const [majorsList, setMajorsList] = useState<MajorDetail[]>(DEFAULT_MAJORS_DATA);
+
+  useEffect(() => {
+    publicService.getMajors()
+      .then((res) => {
+        const apiMajors = unwrapList<Major>(res);
+        if (apiMajors.length > 0) {
+          // Map API majors to UI structure
+          const mapped: MajorDetail[] = apiMajors.map((m) => {
+            const slugKey = m.slug.toLowerCase();
+            const fallbackItem = DEFAULT_MAJORS_DATA.find(
+              (d) => d.slug === slugKey || d.id === slugKey || m.name.toLowerCase().includes(d.id)
+            );
+
+            return {
+              id: m.slug,
+              slug: m.slug,
+              code: fallbackItem?.code || m.name.substring(0, 4).toUpperCase(),
+              name: m.name,
+              badge: fallbackItem?.badge || 'Program Keahlian Vokasi',
+              logo: m.logo_url || m.logo || null,
+              icon: fallbackItem?.icon || ICON_MAP[slugKey] || Network,
+              color: fallbackItem?.color || COLOR_MAP[slugKey] || 'from-slate-700 to-slate-900',
+              summary: m.summary || m.description || fallbackItem?.summary || '',
+              skills: m.subjects && m.subjects.length > 0
+                ? m.subjects.map((s) => s.name)
+                : fallbackItem?.skills || ['Kurikulum Berbasis Industri', 'Praktek Kerja Lapangan'],
+              certifications: fallbackItem?.certifications || ['Sertifikasi Kompetensi BNSP', 'Uji Kompetensi Keahlian (UKK)'],
+              careers: m.careers && m.careers.length > 0
+                ? m.careers.map((c) => c.name)
+                : fallbackItem?.careers || ['Tenaga Terampil Industri', 'Wirausaha Mandiri'],
+              promptQuestion: fallbackItem?.promptQuestion || `Jelaskan kurikulum dan peluang karir di jurusan ${m.name} SMKN 1 Subang.`,
+            };
+          });
+          setMajorsList(mapped);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <div className="bg-slate-50 min-h-screen">
       {/* Header Banner */}
@@ -134,13 +205,13 @@ export default function JurusanPage() {
 
           <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-500/20 border border-blue-400/30 px-3.5 py-1 text-xs font-semibold text-cyan-300 mb-4">
             <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
-            6 Konsentrasi Keahlian Unggulan
+            {majorsList.length} Konsentrasi Keahlian Unggulan
           </span>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white mb-4">
             Pilihan Program Keahlian Masa Depan
           </h1>
           <p className="text-base sm:text-lg text-slate-300 max-w-3xl leading-relaxed">
-            Kurikulum berbasis industri yang dirancang dengan skema *Link & Match*, diperkuat sertifikasi kompetensi nasional BNSP dan mitra industri multinasional.
+            Kurikulum berbasis industri yang dirancang dengan skema <em>Link & Match</em>, diperkuat sertifikasi kompetensi nasional BNSP dan mitra industri multinasional.
           </p>
         </div>
       </section>
@@ -148,7 +219,7 @@ export default function JurusanPage() {
       {/* Majors Deep Dive */}
       <section className="py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12">
-          {MAJORS_DATA.map((major) => {
+          {majorsList.map((major) => {
             const Icon = major.icon;
             return (
               <div
@@ -158,8 +229,19 @@ export default function JurusanPage() {
               >
                 <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6 mb-8 border-b border-slate-100 pb-6">
                   <div className="flex items-start gap-4">
-                    <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${major.color} text-white shadow-md`}>
-                      <Icon className="h-8 w-8 text-cyan-100" />
+                    <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${major.color} text-white shadow-md p-2 overflow-hidden`}>
+                      {major.logo ? (
+                        <img
+                          src={major.logo}
+                          alt={major.name}
+                          className="h-full w-full object-contain filter drop-shadow"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLElement).style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <Icon className="h-8 w-8 text-cyan-100" />
+                      )}
                     </div>
                     <div>
                       <div className="flex items-center gap-2 mb-1">
@@ -171,19 +253,42 @@ export default function JurusanPage() {
                         </span>
                       </div>
                       <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-                        {major.name}
+                        <Link href={`/jurusan/${major.slug}`} className="hover:text-blue-600 transition-colors">
+                          {major.name}
+                        </Link>
                       </h2>
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => openNesaiChat(major.promptQuestion)}
-                    className="inline-flex items-center gap-2 self-start rounded-xl border border-cyan-300 bg-cyan-50/80 px-4 py-2.5 text-xs font-bold text-cyan-800 hover:bg-cyan-100 hover:border-cyan-400 transition-all shadow-2xs"
-                  >
-                    <Bot className="h-4 w-4 text-cyan-600" />
-                    <span>Tanya Detail ke NESAI</span>
-                  </button>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Link
+                      href={`/jurusan/${major.slug}`}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-100 hover:border-slate-300 transition-all"
+                    >
+                      <span>Lihat Halaman Jurusan</span>
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        openNesaiChat({
+                          prompt: major.promptQuestion,
+                          context: {
+                            page: 'majors_list',
+                            path: `/jurusan/${major.slug}`,
+                            major: major.slug,
+                            majorName: major.name,
+                            topic: 'jurusan',
+                          },
+                          autoSend: true,
+                        })
+                      }
+                      className="inline-flex items-center gap-2 self-start rounded-xl border border-cyan-300 bg-cyan-50/80 px-4 py-2.5 text-xs font-bold text-cyan-800 hover:bg-cyan-100 hover:border-cyan-400 transition-all shadow-2xs"
+                    >
+                      <Bot className="h-4 w-4 text-cyan-600" />
+                      <span>Tanya ke NESAI</span>
+                    </button>
+                  </div>
                 </div>
 
                 <p className="text-slate-600 text-base leading-relaxed mb-8">
@@ -259,7 +364,18 @@ export default function JurusanPage() {
             </p>
             <button
               type="button"
-              onClick={() => openNesaiChat('Saya ingin tes minat dan bakat. Bisakah NESAI merekomendasikan jurusan yang paling cocok dengan hobi dan keahlian saya?')}
+              onClick={() =>
+                openNesaiChat({
+                  prompt:
+                    'Saya ingin tes minat dan bakat. Bisakah NESAI merekomendasikan jurusan yang paling cocok dengan hobi dan keahlian saya?',
+                  context: {
+                    page: 'majors_list',
+                    path: '/jurusan',
+                    topic: 'jurusan',
+                  },
+                  autoSend: true,
+                })
+              }
               className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-8 py-3.5 text-sm font-bold text-white shadow-lg hover:from-cyan-600 hover:to-blue-700 transition-all active:scale-95"
             >
               <Sparkles className="h-4 w-4" />
