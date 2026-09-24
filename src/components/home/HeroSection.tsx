@@ -10,7 +10,7 @@ export function HeroSection() {
   function handleSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const query = new FormData(event.currentTarget).get('query')?.toString().trim();
-    router.push(query ? `/search?q=${encodeURIComponent(query)}` : '/search');
+    router.replace(query ? `/search?q=${encodeURIComponent(query)}` : '/search');
   }
 
   return (
