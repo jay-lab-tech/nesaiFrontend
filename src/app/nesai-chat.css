@@ -1,0 +1,86 @@
+/* ============================================================
+   NESAI — Conversational Navigation Styles
+   Designed for SMKN 1 Subang (NESAS)
+   Follows Blueprint: Editorial, clean, accessible, zero AI-slop
+   ============================================================ */
+
+/* ---- Markdown / Prose in NESAI Messages ---- */
+.nesai-prose {
+  font-size: 0.8125rem; /* 13px */
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.nesai-prose table {
+  display: block;
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.nesai-prose p {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.nesai-prose p:last-child {
+  margin-bottom: 0;
+}
+
+.nesai-prose strong {
+  font-weight: 600;
+  color: inherit;
+}
+
+.nesai-prose ol {
+  list-style-type: decimal;
+  margin: 0.4rem 0;
+  padding-left: 1.25rem;
+}
+
+.nesai-prose ul {
+  list-style-type: disc;
+  margin: 0.4rem 0;
+  padding-left: 1.25rem;
+}
+
+.nesai-prose li {
+  margin-bottom: 0.25rem;
+}
+
+.nesai-prose a {
+  color: #172b3a;
+  text-decoration: underline;
+  text-decoration-color: #e7ae32;
+  text-underline-offset: 3px;
+  font-weight: 600;
+  transition: color 150ms ease;
+}
+
+.nesai-prose a:hover {
+  color: #e7ae32;
+}
+
+.nesai-prose code {
+  background-color: rgba(15, 23, 42, 0.06);
+  padding: 0.125rem 0.3rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-family: var(--font-geist-mono), monospace;
+}
+
+/* ---- Keyframe animations for subtle entry ---- */
+@keyframes nesai-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-nesai-in {
+  animation: nesai-fade-up 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
