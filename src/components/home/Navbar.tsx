@@ -9,7 +9,7 @@ import { ChevronDown, ArrowUpRight } from 'lucide-react';
 const NAV_LINKS = [
   { label: 'Profil Sekolah', href: '/profil', menu: [{ label: 'Profil & sejarah', href: '/profil' }, { label: 'Visi & misi', href: '/profil#visi-misi' }, { label: 'Tenaga pendidik', href: '/profil#tenaga-pendidik' }] },
   { label: 'Berita', href: '/berita', menu: [{ label: 'Berita terbaru', href: '/berita' }, { label: 'Pengumuman sekolah', href: '/berita#pengumuman' }, { label: 'Agenda kegiatan', href: '/berita#agenda' }] },
-  { label: 'Layanan', href: '/fasilitas', menu: [{ label: 'Program keahlian', href: '/jurusan' }, { label: 'Fasilitas sekolah', href: '/fasilitas' }, { label: 'Informasi PPDB', href: '/ppdb' }, { label: 'Tanya NesAI (Asisten)', href: '/tanya-nesai' }] },
+  { label: 'Layanan', href: '/fasilitas', menu: [{ label: 'Fasilitas sekolah', href: '/fasilitas' }, { label: 'PKL Career Center', href: '/pkl' }, { label: 'Informasi PPDB', href: '/ppdb' }, { label: 'Tanya NesAI (Asisten)', href: '/tanya-nesai' }] },
   { label: 'Prestasi', href: '/prestasi' },
   { label: 'Jurusan', href: '/jurusan' },
   { label: 'Kontak', href: '/kontak' },
@@ -47,6 +47,19 @@ export function Navbar() {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
+  }, []);
+
+  // Tutup dropdown / mobile menu saat Escape ditekan
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setActiveDropdown(null);
+        setMobileMenuOpen(false);
+        setMobileExpanded(null);
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
   }, []);
 
   // Bersihkan timeout saat unmount
@@ -123,6 +136,7 @@ export function Navbar() {
                 ) : (
                   <Link
                     href={link.href}
+                    aria-current={isLinkActive ? 'page' : undefined}
                     className={`relative inline-flex items-center gap-1 pb-2 text-sm font-semibold transition-colors after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:transition-[width] after:duration-300 hover:after:w-full ${navUnderline} ${isLinkActive ? `${isHome ? 'text-white after:w-full' : 'text-[#172b3a] after:w-full'}` : tone}`}
                   >
                     <span>{link.label}</span>

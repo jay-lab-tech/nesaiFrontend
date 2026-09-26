@@ -35,6 +35,9 @@ export default function RootLayout({
       className={`${openSans.variable} ${poppins.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-white text-slate-900 overflow-x-hidden">
+        <a href="#main-content" className="skip-to-content">
+          Langsung ke konten utama
+        </a>
         <AppShell>{children}</AppShell>
       </body>
     </html>
