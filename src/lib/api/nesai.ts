@@ -9,7 +9,8 @@ export interface ChatHistoryItem {
 
 export async function sendNesaiMessage(
   message: string,
-  history: ChatHistoryItem[] = []
+  history: ChatHistoryItem[] = [],
+  sessionId?: string
 ): Promise<NesaiChatResponse> {
   const rootUrl = API_BASE_URL.replace(/\/api\/v1\/?$/, '');
   const endpoints = [
@@ -22,17 +23,24 @@ export async function sendNesaiMessage(
 
   for (const url of endpoints) {
     try {
+      const payload: Record<string, unknown> = {
+        message: message.trim(),
+        history,
+        context: history,
+      };
+
+      if (sessionId) {
+        payload.session_id = sessionId;
+        payload.conversation_id = sessionId;
+      }
+
       const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: JSON.stringify({
-          message: message.trim(),
-          history,
-          context: [],
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (response.ok) {

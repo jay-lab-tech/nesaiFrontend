@@ -2,9 +2,10 @@
 
 import { useState, useCallback, useEffect, useRef, startTransition } from 'react';
 import { ChatMessage } from '@/types/nesai';
-import { sendNesaiMessage } from '@/lib/api/nesai';
+import { sendNesaiMessage, ChatHistoryItem } from '@/lib/api/nesai';
 
-const SESSION_STORAGE_KEY = 'nesai-chat-messages';
+const STORAGE_KEY = 'nesai-chat-messages-v1';
+const SESSION_ID_KEY = 'nesai-chat-session-id';
 
 const WELCOME_MESSAGE: ChatMessage = {
   id: 'welcome',
@@ -13,10 +14,24 @@ const WELCOME_MESSAGE: ChatMessage = {
   createdAt: '',
 };
 
-function loadMessagesFromSession(): ChatMessage[] | null {
+function getOrCreateSessionId(): string {
+  if (typeof window === 'undefined') return '';
+  try {
+    let id = localStorage.getItem(SESSION_ID_KEY);
+    if (!id) {
+      id = `nesai_sess_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+      localStorage.setItem(SESSION_ID_KEY, id);
+    }
+    return id;
+  } catch {
+    return `nesai_sess_${Date.now()}`;
+  }
+}
+
+function loadMessagesFromStorage(): ChatMessage[] | null {
   if (typeof window === 'undefined') return null;
   try {
-    const stored = sessionStorage.getItem(SESSION_STORAGE_KEY);
+    const stored = localStorage.getItem(STORAGE_KEY) || sessionStorage.getItem('nesai-chat-messages');
     if (stored) {
       return JSON.parse(stored) as ChatMessage[];
     }
@@ -26,10 +41,10 @@ function loadMessagesFromSession(): ChatMessage[] | null {
   return null;
 }
 
-function saveMessagesToSession(messages: ChatMessage[]): void {
+function saveMessagesToStorage(messages: ChatMessage[]): void {
   if (typeof window === 'undefined') return;
   try {
-    sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(messages));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
   } catch {
     // Ignore storage errors
   }
@@ -37,13 +52,17 @@ function saveMessagesToSession(messages: ChatMessage[]): void {
 
 export function useNesaiChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
+  const [sessionId, setSessionId] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const isInitialized = useRef(false);
 
-  // Restore messages from sessionStorage on mount or initialize timestamp
+  // Inisialisasi pesan & session ID dari storage saat mount
   useEffect(() => {
-    const stored = loadMessagesFromSession();
+    const id = getOrCreateSessionId();
+    setSessionId(id);
+
+    const stored = loadMessagesFromStorage();
     if (stored && stored.length > 0) {
       startTransition(() => {
         setMessages(stored);
@@ -61,10 +80,10 @@ export function useNesaiChat() {
     isInitialized.current = true;
   }, []);
 
-  // Persist messages to sessionStorage on change (skip initial mount to prevent overwriting stored session)
+  // Simpan riwayat obrolan ke storage setiap kali ada perubahan
   useEffect(() => {
     if (!isInitialized.current) return;
-    saveMessagesToSession(messages);
+    saveMessagesToStorage(messages);
   }, [messages]);
 
   const sendMessage = useCallback(async (text: string) => {
@@ -77,12 +96,22 @@ export function useNesaiChat() {
       createdAt: new Date().toISOString(),
     };
 
+    // Ekstrak riwayat percakapan sebelumnya untuk memory AI (multi-turn context)
+    // Filter pesan sambutan awal dan pesan error, ambil 10 pesan terakhir (5 giliran dialog)
+    const history: ChatHistoryItem[] = messages
+      .filter((m) => m.id !== 'welcome' && !m.isError && m.text.trim())
+      .slice(-10)
+      .map((m) => ({
+        role: m.sender === 'user' ? 'user' : 'assistant',
+        content: m.text,
+      }));
+
     setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await sendNesaiMessage(text);
+      const response = await sendNesaiMessage(text, history, sessionId);
       const data = response.data;
 
       const botMessage: ChatMessage = {
@@ -110,13 +139,25 @@ export function useNesaiChat() {
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading]);
+  }, [isLoading, messages, sessionId]);
 
   const clearChat = useCallback(() => {
+    const newSessionId = `nesai_sess_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    setSessionId(newSessionId);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(SESSION_ID_KEY, newSessionId);
+        localStorage.removeItem(STORAGE_KEY);
+        sessionStorage.removeItem('nesai-chat-messages');
+      } catch {
+        // Ignore storage errors
+      }
+    }
+
     const resetMessage: ChatMessage = {
       id: `welcome-${Date.now()}`,
       sender: 'nesai',
-      text: 'Percakapan telah direset. Ada yang bisa NESAI bantu lagi? 😊',
+      text: 'Percakapan dan memori telah direset. Ada yang bisa NESAI bantu lagi? 😊',
       createdAt: new Date().toISOString(),
     };
     setMessages([resetMessage]);
@@ -125,6 +166,7 @@ export function useNesaiChat() {
 
   return {
     messages,
+    sessionId,
     isLoading,
     error,
     sendMessage,
