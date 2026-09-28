@@ -40,8 +40,40 @@ button {
   }
 }
 
+@keyframes nav-header-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.nav-header-in {
+  animation: nav-header-in 500ms ease-out both;
+}
+
+@keyframes nav-item-in {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.nav-item-in {
+  animation: nav-item-in 400ms ease-out both;
+}
+
 .nav-dropdown {
-  animation: nav-dropdown-in 180ms ease-out both;
+  animation: nav-dropdown-in 220ms ease-out both;
 }
 
 @keyframes nav-mobile-drawer-in {
