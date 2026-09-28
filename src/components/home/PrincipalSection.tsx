@@ -3,7 +3,7 @@ import { Quote, Sparkles, CheckCircle2 } from 'lucide-react';
 
 export function PrincipalSection() {
   return (
-    <section id="profil" className="relative py-20 bg-white overflow-hidden">
+    <section className="relative py-20 bg-white overflow-hidden">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
           {/* Left Column: Portrait Photo */}

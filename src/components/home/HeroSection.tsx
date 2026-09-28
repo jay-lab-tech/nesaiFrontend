@@ -14,7 +14,7 @@ export function HeroSection() {
   }
 
   return (
-    <section className="relative flex min-h-[650px] items-center overflow-hidden bg-[#12334a] pb-10 pt-[82px] text-white sm:min-h-[720px] lg:min-h-[790px]">
+    <section className="relative flex min-h-[100dvh] items-center overflow-hidden bg-[#12334a] pb-10 pt-[82px] text-white supports-[min-height:100dvh]:min-h-[100dvh]">
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{ backgroundImage: "url('https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=2200&q=90')" }}
@@ -38,6 +38,15 @@ export function HeroSection() {
           </div>
           <button type="submit" className="min-h-11 rounded-full bg-[#f5b51b] px-8 text-sm font-bold text-[#152c3e] transition hover:bg-[#ffc83d] sm:min-h-10">Cari</button>
         </form>
+
+        {/* Secondary CTA — Daftar PPDB */}
+        <a
+          href="/ppdb"
+          className="mt-5 inline-flex items-center gap-2 rounded-full border-2 border-white/40 bg-white/10 px-6 py-2.5 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/20 hover:border-white/60"
+        >
+          Daftar PPDB Sekarang
+          <span aria-hidden="true">→</span>
+        </a>
         </div>
       </div>
     </section>

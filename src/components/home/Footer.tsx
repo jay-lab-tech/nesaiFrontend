@@ -5,6 +5,7 @@ const LINKS = [
   { label: 'Profil sekolah', href: '/profil' },
   { label: 'Program keahlian', href: '/jurusan' },
   { label: 'Fasilitas', href: '/fasilitas' },
+  { label: 'PKL Career Center', href: '/pkl' },
   { label: 'Berita', href: '/berita' },
   { label: 'PPDB', href: '/ppdb' },
 ];

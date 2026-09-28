@@ -90,7 +90,7 @@ const MAJORS: MajorItem[] = [
 
 export function MajorsSection() {
   return (
-    <section id="jurusan" className="py-24 bg-slate-50 relative overflow-hidden">
+    <section className="py-24 bg-slate-50 relative overflow-hidden">
       {/* Background Decor */}
       <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
       <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-100/40 rounded-full blur-3xl pointer-events-none" />

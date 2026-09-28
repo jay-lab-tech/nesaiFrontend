@@ -63,7 +63,7 @@ const FACILITIES: FacilityItem[] = [
 
 export function FacilitiesSection() {
   return (
-    <section id="fasilitas" className="py-24 bg-white relative">
+    <section className="py-24 bg-white relative">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">

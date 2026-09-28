@@ -6,7 +6,7 @@ import { openNesaiChat } from '@/lib/nesai-events';
 
 export function CtaSection() {
   return (
-    <section id="ppdb" className="py-20 bg-white relative">
+    <section className="py-20 bg-white relative">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-blue-950 to-teal-900 p-8 sm:p-12 lg:p-16 text-white shadow-2xl">
           {/* Background Decorative Circles */}

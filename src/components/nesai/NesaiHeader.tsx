@@ -1,60 +1,64 @@
 'use client';
 
+import { RotateCcw, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+
 interface NesaiHeaderProps {
-  onClose: () => void;
+  onClose?: () => void;
   onClear: () => void;
+  variant?: 'floating' | 'fullpage';
 }
 
-export function NesaiHeader({ onClose, onClear }: NesaiHeaderProps) {
+export function NesaiHeader({ onClose, onClear, variant = 'floating' }: NesaiHeaderProps) {
   return (
-    <div className="nesai-header">
-      <div className="nesai-header-info">
-        <div className="nesai-header-avatar">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 8V4H8" />
-            <rect width="16" height="12" x="4" y="8" rx="2" />
-            <path d="M2 14h2" />
-            <path d="M20 14h2" />
-            <path d="M15 13v2" />
-            <path d="M9 13v2" />
-          </svg>
+    <div
+      className={`flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-[#dce5e1] bg-white text-[#172b3a] shrink-0 select-none ${
+        variant === 'fullpage' ? 'w-full' : ''
+      }`}
+    >
+      <div className="flex items-center gap-3 min-w-0">
+        <div className="flex flex-col leading-none">
+          <span className="font-school-heading text-xl sm:text-2xl font-extrabold tracking-[-0.04em] text-[#172b3a]">
+            NesAI
+          </span>
+          <span className="mt-1 text-[10px] font-semibold tracking-[0.18em] text-[#657c7d] uppercase">
+            Asisten SMKN 1 Subang
+          </span>
         </div>
-        <div className="nesai-header-text">
-          <h3 className="nesai-header-title">NESAI</h3>
-          <p className="nesai-header-subtitle">
-            <span className="nesai-status-dot" />
-            Asisten Virtual SMKN 1 Subang
-          </p>
+
+        <div className="hidden xs:inline-flex sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-[10px] sm:text-[11px] font-medium text-emerald-800">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <span>Online</span>
         </div>
       </div>
-      <div className="nesai-header-actions">
-        {/* Clear/Reset Button */}
-        <button
+
+      <div className="flex items-center gap-2 shrink-0">
+        <Button
           type="button"
-          className="nesai-header-btn"
+          variant="outline"
+          size="sm"
           onClick={onClear}
-          aria-label="Reset percakapan"
           title="Reset percakapan"
+          aria-label="Reset percakapan"
+          className="h-8 px-2.5 text-xs font-semibold rounded-lg border-[#dce5e1] bg-white text-[#172b3a] hover:bg-[#edf3f0] hover:border-[#b9c7c2] transition flex items-center gap-1.5"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-            <path d="M21 3v5h-5" />
-            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-            <path d="M8 16H3v5" />
-          </svg>
-        </button>
-        {/* Close/Minimize Button */}
-        <button
-          type="button"
-          className="nesai-header-btn"
-          onClick={onClose}
-          aria-label="Tutup chat"
-          title="Tutup chat"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M6 9l6 6 6-6" />
-          </svg>
-        </button>
+          <RotateCcw className="h-3.5 w-3.5 text-[#5d6a6e]" />
+          <span className="hidden sm:inline">Reset Chat</span>
+        </Button>
+
+        {variant === 'floating' && onClose && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            title="Tutup"
+            aria-label="Tutup jendela chat"
+            className="h-8 w-8 text-[#5d6a6e] hover:text-[#172b3a] hover:bg-[#edf3f0] rounded-lg"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        )}
       </div>
     </div>
   );
