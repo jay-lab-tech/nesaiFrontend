@@ -82,18 +82,62 @@ export interface Career {
   major_id: number;
   name: string;
   description?: string | null;
+  salary_range?: string | null;
   created_at?: string;
   updated_at?: string;
 }
+
+// ── Major Metadata (stored as JSON column) ──────────────────
+
+export interface MajorCompetency {
+  title: string;
+  description: string;
+}
+
+export interface MajorCurriculum {
+  semester: string;
+  subjects: string[];
+}
+
+export interface MajorTeacher {
+  name: string;
+  position: string;
+  field: string;
+  education: string;
+}
+
+export interface MajorPartner {
+  company_name: string;
+  industry: string;
+  description: string;
+}
+
+export interface MajorMetadata {
+  competencies?: MajorCompetency[];
+  curricula?: MajorCurriculum[];
+  teachers?: MajorTeacher[];
+  partners?: MajorPartner[];
+}
+
+// ── Major ───────────────────────────────────────────────────
 
 export interface Major {
   id: number;
   name: string;
   slug: string;
+  code?: string | null;
+  tagline?: string | null;
   logo?: string | null;
   logo_url?: string | null;
   summary?: string | null;
   description?: string | null;
+  vision?: string | null;
+  mission?: string[] | null;
+  accreditation?: string | null;
+  founded_year?: number | null;
+  student_count?: number | null;
+  class_count?: number | null;
+  metadata?: MajorMetadata | null;
   subjects?: MajorSubject[];
   careers?: Career[];
   created_at?: string;
