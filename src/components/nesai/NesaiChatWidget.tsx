@@ -20,7 +20,7 @@ import { NesaiChatBody } from './NesaiChatBody';
 export function NesaiChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [isLauncherVisible, setIsLauncherVisible] = useState(true);
-  const { messages, isLoading, sendMessage, clearChat } = useNesaiChat();
+  const { messages, isLoading, sendMessage, clearChat, isCooldown, cooldownRemaining } = useNesaiChat();
   const pathname = usePathname();
 
   // Sembunyikan widget floating di halaman khusus NesAI
@@ -107,6 +107,8 @@ export function NesaiChatWidget() {
           isLoading={isLoading}
           sendMessage={sendMessage}
           variant="floating"
+          isCooldown={isCooldown}
+          cooldownRemaining={cooldownRemaining}
         />
       </Card>
 

@@ -2,7 +2,7 @@
 
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, ShieldAlert } from 'lucide-react';
 import { ChatMessage } from '@/types/nesai';
 import { NesaiActionChips } from './NesaiActionChips';
 import { NesaiSourceBadges } from './NesaiSourceBadges';
@@ -28,6 +28,7 @@ function formatTimestamp(dateInput?: Date | string): string {
 export function NesaiMessageItem({ message }: NesaiMessageItemProps) {
   const isUser = message.sender === 'user';
   const isError = message.isError;
+  const isFallback = message.isFallback;
   const formattedTime = formatTimestamp(message.createdAt);
 
   return (
@@ -66,6 +67,14 @@ export function NesaiMessageItem({ message }: NesaiMessageItemProps) {
             </div>
           )}
         </div>
+
+        {/* Soft fallback badge — provider AI down, bukan error keras */}
+        {!isUser && isFallback && (
+          <div className="flex items-center gap-1.5 mt-2 px-3 py-1.5 rounded-full border border-amber-200 bg-amber-50 text-amber-800 text-[11px] font-medium">
+            <ShieldAlert className="h-3.5 w-3.5 shrink-0" />
+            <span>Mode terbatas — sebagian jawaban dari data cadangan</span>
+          </div>
+        )}
 
         {/* Action chips for navigation */}
         {!isUser && message.actions && message.actions.length > 0 && (

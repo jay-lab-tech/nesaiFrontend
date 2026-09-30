@@ -27,4 +27,10 @@ export interface ChatMessage {
   sources?: string[];
   actions?: NesaiAction[];
   isError?: boolean;
+  /**
+   * Ditandai saat backend membalas `data.mode === 'fallback-error'`
+   * (provider AI down). UI sebaiknya menampilkan badge lembut,
+   * bukan error merah, dan tetap merender `actions` default.
+   */
+  isFallback?: boolean;
 }

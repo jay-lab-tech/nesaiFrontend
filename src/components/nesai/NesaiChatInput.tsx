@@ -7,11 +7,13 @@ import { Button } from '@/components/ui/button';
 interface NesaiChatInputProps {
   onSend: (text: string) => void;
   disabled?: boolean;
+  /** Sisa detik cooldown 429 (0 bila tidak cooldown). */
+  cooldownRemaining?: number;
 }
 
 const MAX_MESSAGE_LENGTH = 2000;
 
-export function NesaiChatInput({ onSend, disabled }: NesaiChatInputProps) {
+export function NesaiChatInput({ onSend, disabled, cooldownRemaining = 0 }: NesaiChatInputProps) {
   const [input, setInput] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -49,7 +51,12 @@ export function NesaiChatInput({ onSend, disabled }: NesaiChatInputProps) {
   };
 
   const isOverLimit = input.length > MAX_MESSAGE_LENGTH;
+  const isCooldown = cooldownRemaining > 0;
   const canSend = input.trim().length > 0 && !disabled && !isOverLimit;
+
+  const placeholder = isCooldown
+    ? `Tunggu ${cooldownRemaining}s sebelum bertanya lagi...`
+    : 'Ketik pertanyaan seputar SMKN 1 Subang, jurusan, PPDB...';
 
   return (
     <div className="p-3 sm:p-4 bg-white border-t border-[#dce5e1] shrink-0">
@@ -65,7 +72,7 @@ export function NesaiChatInput({ onSend, disabled }: NesaiChatInputProps) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Ketik pertanyaan seputar SMKN 1 Subang, jurusan, PPDB..."
+          placeholder={placeholder}
           disabled={disabled}
           rows={1}
           aria-label="Tanya NesAI"

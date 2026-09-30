@@ -42,7 +42,7 @@ const POPULAR_TOPICS = [
 ];
 
 export function NesaiFullPage() {
-  const { messages, isLoading, sendMessage, clearChat } = useNesaiChat();
+  const { messages, isLoading, sendMessage, clearChat, isCooldown, cooldownRemaining } = useNesaiChat();
 
   return (
     <div className="w-full h-[calc(100dvh-82px)] max-h-[calc(100dvh-82px)] bg-[#f8faf8] overflow-hidden flex flex-col">
@@ -75,7 +75,7 @@ export function NesaiFullPage() {
                   <button
                     key={idx}
                     type="button"
-                    disabled={isLoading}
+                    disabled={isLoading || isCooldown}
                     onClick={() => sendMessage(topic.prompt)}
                     className="w-full text-left p-3 rounded-xl border border-[#dce5e1] bg-[#fcfdfc] hover:bg-[#edf3f0] hover:border-[#b9c7c2] transition group flex items-start gap-3 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -133,6 +133,8 @@ export function NesaiFullPage() {
             isLoading={isLoading}
             sendMessage={sendMessage}
             variant="fullpage"
+            isCooldown={isCooldown}
+            cooldownRemaining={cooldownRemaining}
           />
         </main>
       </div>
