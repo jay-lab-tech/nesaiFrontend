@@ -5,14 +5,43 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { ChevronDown, ArrowUpRight, Search } from 'lucide-react';
+import { ROUTES } from '@/lib/site-data';
 
-const NAV_LINKS = [
-  { label: 'Profil Sekolah', href: '/profil', menu: [{ label: 'Profil & sejarah', href: '/profil' }, { label: 'Visi & misi', href: '/profil#visi-misi' }, { label: 'Tenaga pendidik', href: '/profil#tenaga-pendidik' }] },
-  { label: 'Berita', href: '/berita', menu: [{ label: 'Berita terbaru', href: '/berita' }, { label: 'Pengumuman sekolah', href: '/berita#pengumuman' }, { label: 'Agenda kegiatan', href: '/berita#agenda' }] },
-  { label: 'Layanan', href: '/fasilitas', menu: [{ label: 'Fasilitas sekolah', href: '/fasilitas' }, { label: 'PKL Career Center', href: '/pkl' }, { label: 'Informasi PPDB', href: '/ppdb' }, { label: 'Tanya NesAI (Asisten)', href: '/tanya-nesai' }] },
-  { label: 'Prestasi', href: '/prestasi' },
-  { label: 'Jurusan', href: '/jurusan' },
-  { label: 'Kontak', href: '/kontak' },
+/**
+ * Navigasi global.
+ * Menu utama mengikuti brief bagian 2 (Beranda | Tentang | Jurusan |
+ * Karya & Industri | PPDB | Nesai | Kontak) sambil mempertahankan menu lama
+ * (Berita, Fasilitas/Layanan, Prestasi, Tanya NesAI) agar tetap terjangkau.
+ * CTA "Daftar PPDB" selalu terlihat.
+ */
+const NAV_LINKS: Array<{
+  label: string;
+  href: string;
+  menu?: { label: string; href: string }[];
+}> = [
+  { label: 'Beranda', href: ROUTES.beranda },
+  { label: 'Tentang', href: ROUTES.tentang, menu: [
+    { label: 'Profil & sejarah', href: ROUTES.tentang },
+    { label: 'Visi & misi', href: '/profil#visi-misi' },
+    { label: 'Tenaga pendidik', href: '/profil#tenaga-pendidik' },
+    { label: 'Fasilitas sekolah', href: ROUTES.fasilitas },
+  ] },
+  { label: 'Jurusan', href: ROUTES.jurusan },
+  { label: 'Karya & Industri', href: ROUTES.karyaIndustri, menu: [
+    { label: 'Portofolio & BLUD', href: ROUTES.portofolio },
+    { label: 'PKL & Career Center', href: ROUTES.pkl },
+    { label: 'Data Alumni', href: ROUTES.alumni },
+    { label: 'Mitra Industri', href: ROUTES.mitra },
+  ] },
+  { label: 'Berita', href: ROUTES.berita, menu: [
+    { label: 'Berita terbaru', href: ROUTES.berita },
+    { label: 'Pengumuman sekolah', href: '/berita#pengumuman' },
+    { label: 'Agenda kegiatan', href: '/berita#agenda' },
+    { label: 'Prestasi siswa', href: ROUTES.prestasi },
+  ] },
+  { label: 'PPDB', href: ROUTES.ppdb },
+  { label: 'Nesai', href: ROUTES.nesai },
+  { label: 'Kontak', href: ROUTES.kontak },
 ];
 
 export function Navbar() {
@@ -24,16 +53,18 @@ export function Navbar() {
 
   const pathname = usePathname();
   const isHome = pathname === '/';
-  const isNesai = pathname === '/tanya-nesai' || pathname === '/nesai';
   const tone = isHome ? 'text-white hover:text-white/80' : 'text-[#253b49] hover:text-[#54778c]';
-  const navUnderline = isHome ? 'after:bg-white' : 'after:bg-[#e7ae32]';
+  const navUnderline = isHome ? 'after:bg-white' : 'after:bg-[var(--accent)]';
 
   // Tutup dropdown dan mobile drawer saat berpindah rute
-  useEffect(() => {
+  // (pola "reset state saat prop berubah" dari React, tanpa setState di effect).
+  const [lastPathname, setLastPathname] = useState(pathname);
+  if (lastPathname !== pathname) {
+    setLastPathname(pathname);
     setActiveDropdown(null);
     setMobileMenuOpen(false);
     setMobileExpanded(null);
-  }, [pathname]);
+  }
 
   // Tutup dropdown saat klik di luar area navbar
   useEffect(() => {
@@ -110,14 +141,14 @@ export function Navbar() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-6 lg:flex">
+        <nav className="hidden items-center gap-5 lg:flex" aria-label="Navigasi utama">
           {NAV_LINKS.map((link) => {
             const isDropdownOpen = activeDropdown === link.label;
             const isLinkActive = pathname === link.href || (pathname.startsWith(link.href) && link.href !== '/');
 
             return (
               <div
-                key={link.href}
+                key={link.label}
                 className="relative"
                 onMouseEnter={() => link.menu && handleMouseEnter(link.label)}
                 onMouseLeave={handleMouseLeave}
@@ -127,6 +158,7 @@ export function Navbar() {
                     type="button"
                     onClick={() => handleToggleDropdown(link.label)}
                     aria-expanded={isDropdownOpen}
+                    aria-haspopup="true"
                     className={`relative inline-flex items-center gap-1.5 py-2 text-sm font-semibold transition-colors focus:outline-hidden ${
                       isDropdownOpen || isLinkActive
                         ? isHome
@@ -138,7 +170,7 @@ export function Navbar() {
                     <span>{link.label}</span>
                     <ChevronDown
                       className={`h-3.5 w-3.5 transition-transform duration-200 ${
-                        isDropdownOpen ? 'rotate-180 text-[#e7ae32]' : ''
+                        isDropdownOpen ? 'rotate-180 text-[var(--accent-strong)]' : ''
                       }`}
                     />
                   </button>
@@ -169,7 +201,7 @@ export function Navbar() {
                           key={item.href}
                           href={item.href}
                           onClick={() => setActiveDropdown(null)}
-                          className="block rounded-lg px-3 py-2.5 text-sm text-slate-700 transition hover:bg-slate-100 hover:text-[#002147]"
+                          className="block rounded-lg px-3 py-2.5 text-sm text-slate-700 transition hover:bg-slate-100 hover:text-[var(--brand)]"
                         >
                           {item.label}
                         </Link>
@@ -191,25 +223,19 @@ export function Navbar() {
             </Link>
           )}
 
-          {/* Tombol Khusus Tanya NesAI di Desktop */}
+          {/* CTA tetap — selalu terlihat */}
           <Link
-            href="/tanya-nesai"
-            className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-bold transition shadow-2xs ${
+            href={ROUTES.ppdb}
+            className={`inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold transition ${
               isHome
-                ? 'border-emerald-400/40 bg-emerald-500/15 hover:bg-emerald-500/25 text-white'
-                : isNesai
-                ? 'border-[#172b3a] bg-[#172b3a] text-white shadow-xs'
-                : 'border-[#dce5e1] bg-white hover:bg-[#edf3f0] hover:border-[#b9c7c2] text-[#172b3a]'
+                ? 'bg-[var(--accent)] text-[var(--brand)] hover:bg-[#ffc83d]'
+                : 'bg-[var(--brand)] text-white hover:bg-[var(--brand-soft)]'
             }`}
           >
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-            </span>
-            <span className="font-school-heading tracking-tight">Tanya NesAI</span>
+            Daftar PPDB
+            <ArrowUpRight className="h-3.5 w-3.5" />
           </Link>
 
-          <Link href="/ppdb" className={`inline-flex items-center gap-1 border-b pb-1 text-sm font-semibold ${isHome ? 'border-[#f5b51b] text-white' : 'border-[#e7ae32] text-[#172b3a]'}`}>PPDB</Link>
           <span className={`border-l pl-4 text-sm font-semibold ${isHome ? 'border-white/35 text-white' : 'border-[#cbd7d3] text-[#172b3a]'}`}>ID</span>
         </nav>
 
@@ -227,6 +253,7 @@ export function Navbar() {
             className={`group flex h-11 w-11 flex-col items-center justify-center gap-[5px] border transition ${isHome ? 'border-white/45 bg-[#08263d]/30 hover:bg-[#08263d]/60' : 'border-[#b9c7c2] bg-white hover:bg-[#edf3f0]'}`}
             aria-label={mobileMenuOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi'}
             aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-nav"
           >
             <span className={`h-px w-5 origin-center transition duration-300 ${isHome ? 'bg-white' : 'bg-[#172b3a]'} ${mobileMenuOpen ? 'translate-y-[6px] rotate-45' : ''}`} />
             <span className={`h-px w-5 transition duration-200 ${isHome ? 'bg-white' : 'bg-[#172b3a]'} ${mobileMenuOpen ? 'scale-x-0 opacity-0' : ''}`} />
@@ -236,21 +263,21 @@ export function Navbar() {
       </div>
 
       {mobileMenuOpen && (
-        <nav className={`nav-mobile-drawer border-t px-5 py-5 lg:hidden ${isHome ? 'border-white/15 bg-[#102d43]' : 'border-[#dce5e1] bg-[#f8faf8]'}`}>
+        <nav id="mobile-nav" aria-label="Navigasi seluler" className={`nav-mobile-drawer border-t px-5 py-5 lg:hidden ${isHome ? 'border-white/15 bg-[#102d43]' : 'border-[#dce5e1] bg-[#f8faf8]'}`}>
           <div className="mx-auto flex max-w-7xl flex-col">
             <p className={`mb-3 text-[10px] font-semibold uppercase tracking-[0.2em] ${isHome ? 'text-white/55' : 'text-[#758b89]'}`}>Menu</p>
-            <Link href="/" onClick={() => setMobileMenuOpen(false)} className={`flex items-center justify-between border-t py-3.5 text-base font-semibold ${isHome ? 'border-white/15 text-white' : 'border-[#dce5e1] text-[#172b3a]'}`}>Beranda <ArrowUpRight className="h-4 w-4" /></Link>
             {NAV_LINKS.map((link) => (
-              <div key={link.href} className="border-t border-inherit">
+              <div key={link.label} className={`border-t ${isHome ? 'border-white/15' : 'border-[#dce5e1]'}`}>
                 {link.menu ? (
                   <div>
                     <button
                       type="button"
                       onClick={() => setMobileExpanded(mobileExpanded === link.label ? null : link.label)}
                       className={`flex w-full items-center justify-between py-3.5 text-base font-semibold ${isHome ? 'text-white' : 'text-[#172b3a]'}`}
+                      aria-expanded={mobileExpanded === link.label}
                     >
                       <span>{link.label}</span>
-                      <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${mobileExpanded === link.label ? 'rotate-180 text-[#e7ae32]' : ''}`} />
+                      <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${mobileExpanded === link.label ? 'rotate-180 text-[var(--accent-strong)]' : ''}`} />
                     </button>
                     {mobileExpanded === link.label && (
                       <div className={`mb-2 ml-2 flex flex-col space-y-1 border-l-2 pl-3 ${isHome ? 'border-white/20' : 'border-slate-300'}`}>
@@ -262,7 +289,7 @@ export function Navbar() {
                               setMobileMenuOpen(false);
                               setMobileExpanded(null);
                             }}
-                            className={`py-2 text-sm font-medium transition ${isHome ? 'text-white/80 hover:text-white' : 'text-slate-600 hover:text-[#002147]'}`}
+                            className={`py-2 text-sm font-medium transition ${isHome ? 'text-white/80 hover:text-white' : 'text-slate-600 hover:text-[var(--brand)]'}`}
                           >
                             {item.label}
                           </Link>
@@ -274,7 +301,7 @@ export function Navbar() {
                   <Link
                     href={link.href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center justify-between py-3.5 text-base font-semibold ${isHome ? 'border-white/15 text-white' : 'border-[#dce5e1] text-[#172b3a]'}`}
+                    className={`flex items-center justify-between py-3.5 text-base font-semibold ${isHome ? 'text-white' : 'text-[#172b3a]'}`}
                   >
                     <span>{link.label}</span>
                     <ArrowUpRight className="h-4 w-4" />
@@ -283,30 +310,8 @@ export function Navbar() {
               </div>
             ))}
 
-            {/* Navigasi Khusus NesAI di Menu Mobile */}
-            <Link
-              href="/tanya-nesai"
-              onClick={() => setMobileMenuOpen(false)}
-              className={`mt-4 flex items-center justify-between p-3.5 rounded-xl border transition shadow-xs ${
-                isHome
-                  ? 'border-emerald-400/30 bg-emerald-950/40 text-white'
-                  : 'border-[#dce5e1] bg-white text-[#172b3a] hover:bg-[#edf3f0]'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                </span>
-                <div className="flex flex-col text-left">
-                  <span className="text-sm font-bold font-school-heading">Tanya NesAI</span>
-                  <span className={`text-[10.5px] ${isHome ? 'text-emerald-300' : 'text-[#657c7d]'}`}>Asisten Virtual SMKN 1 Subang</span>
-                </div>
-              </div>
-              <ArrowUpRight className="h-4 w-4 text-[#e7ae32]" />
-            </Link>
-
-            <Link href="/ppdb" onClick={() => setMobileMenuOpen(false)} className={`mt-3 flex items-center justify-center gap-2 py-3.5 text-sm font-bold ${isHome ? 'bg-[#f5b51b] text-[#102d43]' : 'bg-[#172b3a] text-white'}`}>Informasi PPDB <ArrowUpRight className="h-4 w-4" /></Link>
+            {/* CTA tetap pada menu mobile */}
+            <Link href={ROUTES.ppdb} onClick={() => setMobileMenuOpen(false)} className={`mt-4 flex items-center justify-center gap-2 py-3.5 text-sm font-bold ${isHome ? 'bg-[var(--accent)] text-[#102d43]' : 'bg-[var(--brand)] text-white'}`}>Daftar PPDB <ArrowUpRight className="h-4 w-4" /></Link>
           </div>
         </nav>
       )}
