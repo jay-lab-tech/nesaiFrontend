@@ -9,6 +9,13 @@ import { NesaiSourceBadges } from './NesaiSourceBadges';
 
 interface NesaiMessageItemProps {
   message: ChatMessage;
+  /**
+   * Teks yang ditampilkan (bisa merupakan substring saat progressive reveal
+   * berjalan). Bila tidak diberikan, pakai `message.text` apa adanya.
+   */
+  displayText?: string;
+  /** True selama progressive reveal pesan ini masih berjalan. */
+  isRevealing?: boolean;
 }
 
 function formatTimestamp(dateInput?: Date | string): string {
@@ -25,11 +32,12 @@ function formatTimestamp(dateInput?: Date | string): string {
   }
 }
 
-export function NesaiMessageItem({ message }: NesaiMessageItemProps) {
+export function NesaiMessageItem({ message, displayText, isRevealing = false }: NesaiMessageItemProps) {
   const isUser = message.sender === 'user';
   const isError = message.isError;
   const isFallback = message.isFallback;
   const formattedTime = formatTimestamp(message.createdAt);
+  const renderedText = displayText ?? message.text;
 
   return (
     <div
@@ -62,27 +70,35 @@ export function NesaiMessageItem({ message }: NesaiMessageItemProps) {
           ) : (
             <div className="nesai-prose">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {message.text}
+                {renderedText}
               </ReactMarkdown>
+              {/* Kursor berkedip ala ChatGPT/Claude selama output direveal */}
+              {isRevealing && (
+                <span
+                  aria-hidden="true"
+                  className="nesai-typing-cursor inline-block w-[2px] h-[0.95em] align-[-0.15em] ml-0.5 bg-[#172b3a] animate-pulse"
+                />
+              )}
             </div>
           )}
         </div>
 
-        {/* Soft fallback badge — provider AI down, bukan error keras */}
-        {!isUser && isFallback && (
+        {/* Soft fallback badge — provider AI down, bukan error keras.
+            Ditahan selama reveal agar tidak mendahului teks jawaban. */}
+        {!isUser && !isRevealing && isFallback && (
           <div className="flex items-center gap-1.5 mt-2 px-3 py-1.5 rounded-full border border-amber-200 bg-amber-50 text-amber-800 text-[11px] font-medium">
             <ShieldAlert className="h-3.5 w-3.5 shrink-0" />
             <span>Mode terbatas — sebagian jawaban dari data cadangan</span>
           </div>
         )}
 
-        {/* Action chips for navigation */}
-        {!isUser && message.actions && message.actions.length > 0 && (
+        {/* Action chips for navigation — muncul setelah reveal selesai */}
+        {!isUser && !isRevealing && message.actions && message.actions.length > 0 && (
           <NesaiActionChips actions={message.actions} />
         )}
 
-        {/* Source badges */}
-        {!isUser && message.sources && message.sources.length > 0 && (
+        {/* Source badges — muncul setelah reveal selesai */}
+        {!isUser && !isRevealing && message.sources && message.sources.length > 0 && (
           <NesaiSourceBadges sources={message.sources} />
         )}
 
@@ -94,8 +110,8 @@ export function NesaiMessageItem({ message }: NesaiMessageItemProps) {
           </p>
         )}
 
-        {/* Timestamp */}
-        {formattedTime ? (
+        {/* Timestamp — ditahan selama reveal agar stabil di dasar bubble */}
+        {formattedTime && !isRevealing ? (
           <span
             suppressHydrationWarning
             className={`text-[10px] text-[#9db0aa] mt-1 px-1 ${

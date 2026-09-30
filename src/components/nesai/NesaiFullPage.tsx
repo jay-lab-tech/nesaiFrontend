@@ -51,10 +51,6 @@ export function NesaiFullPage() {
         <aside className="hidden lg:flex w-80 xl:w-96 flex-col bg-white border border-[#dce5e1] rounded-2xl p-5 overflow-y-auto shrink-0 shadow-2xs">
           {/* Header Panel */}
           <div className="pb-4 border-b border-[#edf2ef]">
-            <div className="flex items-center gap-2 text-emerald-800 bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded-full w-fit text-[11px] font-semibold mb-2.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Sistem AI Aktif</span>
-            </div>
             <h2 className="font-school-heading text-lg font-bold text-[#172b3a] tracking-tight">
               Panduan Percakapan
             </h2>
