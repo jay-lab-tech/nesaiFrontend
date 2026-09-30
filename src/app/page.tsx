@@ -25,6 +25,7 @@ import { PortofolioMitraSection } from '@/components/home/PortofolioMitraSection
 import { JejakAlumniSection } from '@/components/home/JejakAlumniSection';
 import { PenutupSection } from '@/components/home/PenutupSection';
 import { publicService, unwrapList, unwrapItem } from '@/lib/api/public-endpoints';
+import { resolveJurusanSlug } from '@/lib/jurusan-data';
 import type { School, Major, News, Ppdb } from '@/types/cms';
 import {
   STATISTIK,
@@ -98,13 +99,17 @@ export default function HomePage() {
   }, []);
 
   // Jurusan: API bila ada, else 9 jurusan statis dari brief.
+  // Link detail HARUS memakai slug yang dikenal halaman `/jurusan/[slug]`
+  // (bersumber dari data statis `JURUSAN`). Slug dari API dibuat otomatis dari
+  // nama (mis. "rekayasa-perangkat-lunak") sehingga bisa 404 jika dipakai mentah.
   const jurusanItems = majors.length > 0
     ? majors.map((m, idx) => {
         const fallback = JURUSAN_CARDS.find((j) => j.slug === m.slug) ?? JURUSAN_CARDS[idx];
+        const resolvedSlug = resolveJurusanSlug({ slug: m.slug, code: m.code, name: m.name });
         return {
           key: String(m.id ?? m.slug),
           code: m.code ?? fallback?.code ?? '',
-          slug: m.slug,
+          slug: resolvedSlug ?? fallback?.slug ?? m.slug,
           name: m.name ?? fallback?.name ?? '',
           description: m.summary ?? fallback?.description ?? '',
           icon: fallback?.icon ?? 'Code2',

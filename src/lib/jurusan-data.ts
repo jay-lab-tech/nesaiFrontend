@@ -639,3 +639,61 @@ export const JURUSAN: Jurusan[] = [
 export function getJurusan(slug: string) {
   return JURUSAN.find((jurusan) => jurusan.slug === slug);
 }
+
+/**
+ * Cari slug jurusan statis (yang dikenal halaman detail `/jurusan/[slug]`)
+ * dari data jurusan mana pun — termasuk data dari API yang slug-nya dibuat
+ * otomatis dari nama (mis. "rekayasa-perangkat-lunak") sehingga tidak cocok
+ * dengan slug statis ("pplg").
+ *
+ * Urutan pencocokan:
+ * 1. slug sama persis (data statis / API yang sudah sinkron)
+ * 2. kode sama (mis. "PPLG", "TJKT")
+ * 3. nama sama persis
+ * 4. nama mengandung / kata kunci
+ */
+export function resolveJurusanSlug(input: {
+  slug?: string | null;
+  code?: string | null;
+  name?: string | null;
+}): string | null {
+  const slug = (input.slug ?? '').trim().toLowerCase();
+  const code = (input.code ?? '').trim().toLowerCase();
+  const name = (input.name ?? '').trim().toLowerCase();
+
+  // 1. Slug sama persis.
+  if (slug) {
+    const bySlug = JURUSAN.find((j) => j.slug === slug);
+    if (bySlug) return bySlug.slug;
+  }
+
+  // 2. Kode sama.
+  if (code) {
+    const byCode = JURUSAN.find((j) => j.code.toLowerCase() === code);
+    if (byCode) return byCode.slug;
+  }
+
+  // 3. Nama sama persis.
+  if (name) {
+    const byName = JURUSAN.find((j) => j.name.toLowerCase() === name);
+    if (byName) return byName.slug;
+  }
+
+  // 4. Kata kunci pada nama/slug (urutan penting: yang lebih spesifik dulu).
+  const haystack = `${name} ${slug} ${code}`;
+  const KEYWORDS: Array<{ match: string[]; slug: string }> = [
+    { match: ['perangkat lunak', 'pplg', 'rpl', 'software'], slug: 'pplg' },
+    { match: ['jaringan', 'tjkt', 'tkj', 'telekomunikasi'], slug: 'tjkt' },
+    { match: ['multimedia', 'dkv', 'desain komunikasi visual'], slug: 'dkv' },
+    { match: ['kuliner', 'tata boga'], slug: 'kuliner' },
+    { match: ['logistik'], slug: 'teknik-logistik' },
+    { match: ['otomotif'], slug: 'teknik-otomotif' },
+    { match: ['mesin', 'otomasi', 'manufaktur'], slug: 'teknik-mesin' },
+    { match: ['akuntansi', 'akl', 'keuangan'], slug: 'akl' },
+    { match: ['pemasaran', 'pms', 'bisnis digital', 'ritel'], slug: 'pemasaran' },
+    { match: ['perkantoran', 'mplb', 'administrasi perkantoran', 'layanan bisnis'], slug: 'mplb' },
+  ];
+
+  const hit = KEYWORDS.find(({ match }) => match.some((kw) => haystack.includes(kw)));
+  return hit ? hit.slug : null;
+}
