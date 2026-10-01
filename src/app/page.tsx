@@ -26,6 +26,7 @@ import { JejakAlumniSection } from '@/components/home/JejakAlumniSection';
 import { PenutupSection } from '@/components/home/PenutupSection';
 import { publicService, unwrapList, unwrapItem } from '@/lib/api/public-endpoints';
 import { resolveJurusanSlug } from '@/lib/jurusan-data';
+import { getJurusanLogo512 } from '@/lib/jurusan-logos';
 import type { School, Major, News, Ppdb } from '@/types/cms';
 import {
   STATISTIK,
@@ -275,15 +276,29 @@ export default function HomePage() {
           <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {jurusanItems.map((jurusan) => {
               const Icon = JURUSAN_ICONS[jurusan.icon] ?? Code2;
+              const logo = getJurusanLogo512(jurusan.slug);
               return (
                 <article
                   key={jurusan.key}
                   className="group flex flex-col border border-slate-200 bg-white p-6 transition hover:-translate-y-1 hover:border-[var(--brand)] hover:shadow-lg"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="flex h-12 w-12 items-center justify-center bg-[var(--brand)] text-white">
-                      <Icon className="h-6 w-6" />
-                    </span>
+                    {logo ? (
+                      <span className="flex h-16 w-16 items-center justify-center">
+                        <Image
+                          src={logo}
+                          alt={`Logo ${jurusan.name}`}
+                          width={64}
+                          height={64}
+                          unoptimized
+                          className="h-16 w-16 object-contain"
+                        />
+                      </span>
+                    ) : (
+                      <span className="flex h-12 w-12 items-center justify-center bg-[var(--brand)] text-white">
+                        <Icon className="h-6 w-6" />
+                      </span>
+                    )}
                     <span className="text-xs font-bold tracking-widest text-slate-400">{jurusan.code}</span>
                   </div>
                   <h3 className="font-school-heading mt-5 text-xl font-bold leading-snug text-[var(--brand)]">

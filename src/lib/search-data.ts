@@ -33,7 +33,7 @@ export const SEARCH_DOCUMENTS: SearchDocument[] = [
     description: 'Program Pemasaran membahas penjualan, promosi, bisnis ritel, e-commerce, dan pemasaran digital.',
     href: '/jurusan#pms',
     category: 'Program Keahlian',
-    keywords: 'PMS pemasaran penjualan promosi bisnis ritel ecommerce digital marketing',
+    keywords: 'BDP PMS pemasaran penjualan promosi bisnis ritel ecommerce digital marketing',
   },
   {
     title: 'Manajemen Perkantoran dan Layanan Bisnis (MPLB)',
@@ -254,11 +254,11 @@ export const SEARCH_DOCUMENTS: SearchDocument[] = [
     keywords: 'AKL akuntansi pembukuan administrasi keuangan perpajakan perbankan pajak',
   },
   {
-    title: 'Pemasaran (PMS)',
+    title: 'Pemasaran (BDP)',
     description: 'Program Pemasaran mempelajari penjualan, promosi, bisnis ritel, e-commerce, dan pemasaran digital.',
     href: '/jurusan#pms',
     category: 'Program Keahlian',
-    keywords: 'PMS pemasaran penjualan promosi bisnis ritel ecommerce digital marketing',
+    keywords: 'BDP PMS pemasaran penjualan promosi bisnis ritel ecommerce digital marketing',
   },
   {
     title: 'Manajemen Perkantoran dan Layanan Bisnis (MPLB)',

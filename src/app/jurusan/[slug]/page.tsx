@@ -1,7 +1,9 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowLeft, ArrowUpRight, GraduationCap, Briefcase, BookOpen, Users, Building2, Target, Award, Calendar, UserCheck, School } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import { getJurusan, JURUSAN } from '@/lib/jurusan-data';
+import { getJurusanLogo512 } from '@/lib/jurusan-logos';
 import { PageHero } from '@/components/site/PageHero';
 
 export function generateStaticParams() {
@@ -12,6 +14,8 @@ export default async function JurusanDetailPage({ params }: { params: Promise<{ 
   const { slug } = await params;
   const jurusan = getJurusan(slug);
   if (!jurusan) notFound();
+
+  const logo = getJurusanLogo512(slug);
 
   return (
     <main className="bg-[#f8faf8] text-[#172b3a]">
@@ -35,6 +39,19 @@ export default async function JurusanDetailPage({ params }: { params: Promise<{ 
         {/* Tagline & Intro content */}
         <div className="mt-12 grid gap-12 lg:grid-cols-[0.8fr_1.2fr]">
           <div>
+            {logo ? (
+              <div className="mb-6 flex h-28 w-28 items-center justify-center">
+                <Image
+                  src={logo}
+                  alt={`Logo ${jurusan.name}`}
+                  width={112}
+                  height={112}
+                  unoptimized
+                  className="h-28 w-28 object-contain"
+                  priority
+                />
+              </div>
+            ) : null}
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-700">Pengenalan Jurusan</p>
             <h2 className="font-school-heading mt-4 text-3xl font-bold leading-tight text-[#0f1e36]">
               {jurusan.tagline}

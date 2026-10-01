@@ -114,7 +114,7 @@ export const JURUSAN: Jurusan[] = [
   },
 
   {
-    code: 'PMS',
+    code: 'BDP',
     slug: 'pemasaran',
     name: 'Pemasaran',
     description: 'Mengembangkan kemampuan memahami pelanggan, menyusun strategi promosi, dan menjalankan kegiatan penjualan di berbagai kanal.',

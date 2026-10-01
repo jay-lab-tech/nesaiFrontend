@@ -130,7 +130,7 @@ export interface JurusanCard {
 
 export const JURUSAN_CARDS: JurusanCard[] = [
   { code: 'AKL', slug: 'akl', name: 'AKL', description: 'Belajar mengatur angka, laporan, dan keuangan sebuah usaha.', icon: 'Calculator' },
-  { code: 'PMS', slug: 'pemasaran', name: 'Pemasaran', description: 'Memahami pelanggan dan mengenalkan produk.', icon: 'ShoppingBag' },
+  { code: 'BDP', slug: 'pemasaran', name: 'Pemasaran', description: 'Memahami pelanggan dan mengenalkan produk.', icon: 'ShoppingBag' },
   { code: 'MPLB', slug: 'mplb', name: 'MPLB', description: 'Mengatur pekerjaan kantor dan pelayanan.', icon: 'ClipboardList' },
   { code: 'PPLG', slug: 'pplg', name: 'PPLG', description: 'Membuat aplikasi, website, dan solusi digital.', icon: 'Code2' },
   { code: 'TJKT', slug: 'tjkt', name: 'TJKT', description: 'Memasang dan menjaga jaringan komputer.', icon: 'Network' },
