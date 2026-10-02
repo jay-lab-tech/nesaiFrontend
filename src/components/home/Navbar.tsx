@@ -225,15 +225,13 @@ export function Navbar() {
             );
           })}
 
-          {!isHome && (
-            <Link
-              href="/search"
-              aria-label="Buka pencarian"
-              className="inline-flex items-center justify-center p-2 text-[#172b3a] transition hover:text-[#54778c]"
-            >
-              <Search className="h-5 w-5" />
-            </Link>
-          )}
+          <Link
+            href="/search"
+            aria-label="Buka pencarian"
+            className={`inline-flex items-center justify-center p-2 transition ${isHome ? 'text-white hover:text-white/80' : 'text-[#172b3a] hover:text-[#54778c]'}`}
+          >
+            <Search className="h-5 w-5" />
+          </Link>
 
           {/* CTA tetap — selalu terlihat */}
           <Link
