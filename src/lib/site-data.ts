@@ -23,11 +23,11 @@ export const ROUTES = {
   beranda: '/',
   tentang: '/profil',
   jurusan: '/jurusan',
-  karyaIndustri: '/karya-industri', // TODO(route): halaman belum ada — butuh keputusan tim
-  portofolio: '/karya-industri/portofolio', // TODO(route): halaman belum ada
+  karyaIndustri: '/karya-industri',
+  portofolio: '/karya-industri/portofolio',
   pkl: '/pkl',
-  alumni: '/karya-industri/alumni', // TODO(route): halaman belum ada
-  mitra: '/karya-industri/mitra', // TODO(route): halaman belum ada
+  alumni: '/karya-industri/alumni',
+  mitra: '/karya-industri/mitra',
   ppdb: '/ppdb',
   nesai: '/tanya-nesai',
   kontak: '/kontak',
