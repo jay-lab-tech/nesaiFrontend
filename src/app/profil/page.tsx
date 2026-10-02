@@ -80,24 +80,24 @@ export default async function ProfilPage() {
           </header>
           <ol
             id="perjalanan-sekolah"
-            className="relative mx-auto mt-12 grid max-w-5xl gap-8 before:absolute before:bottom-8 before:left-5 before:top-5 before:w-px before:bg-[#e7e8eb] before:content-[''] md:grid-cols-2 md:gap-10 md:before:bottom-auto md:before:left-1/4 md:before:right-1/4 md:before:top-[12.25rem] md:before:h-px md:before:w-auto"
+            className="relative mx-auto mt-12 grid max-w-5xl gap-8 before:absolute before:bottom-8 before:left-5 before:top-5 before:w-px before:bg-[#e7e8eb] before:content-[''] md:grid-cols-2 md:gap-10 md:before:bottom-auto md:before:left-1/4 md:before:right-1/4 md:before:top-[14rem] md:before:h-px md:before:w-auto"
           >
-            <li className="relative grid min-h-[12rem] grid-cols-[2.5rem_1fr] gap-x-4 md:block md:min-h-[26rem]">
+            <li className="relative grid min-h-[12rem] grid-cols-[2.5rem_1fr] gap-x-4 md:block md:min-h-[29rem]">
               <p className="col-start-2 row-start-1 text-left font-school-heading text-xl font-bold text-[#28394a] md:absolute md:inset-x-0 md:top-0 md:text-center">{school?.founded_year ?? 1965}</p>
-              <span aria-hidden="true" className="relative z-10 col-start-1 row-span-2 row-start-1 flex h-10 w-10 items-center justify-center self-start rounded-full border-4 border-white bg-[#e21f33] text-white shadow-[0_0_0_3px_#fde5e7] md:absolute md:left-1/2 md:top-[11rem] md:-translate-x-1/2">
+              <span aria-hidden="true" className="relative z-10 col-start-1 row-span-2 row-start-1 flex h-10 w-10 items-center justify-center self-start rounded-full border-4 border-white bg-[#e21f33] text-white shadow-[0_0_0_3px_#fde5e7] md:absolute md:left-1/2 md:top-[12.75rem] md:-translate-x-1/2">
                 <Flag className="h-4 w-4" />
               </span>
-              <div className="col-start-2 row-start-2 rounded-xl border border-[#e9eaed] bg-[#f8f9fa] p-5 text-left md:absolute md:left-1/2 md:top-[3.5rem] md:w-80 md:-translate-x-1/2 md:p-6 md:text-center">
+              <div className="col-start-2 row-start-2 rounded-xl border border-[#e9eaed] bg-[#f8f9fa] p-5 text-left md:absolute md:left-1/2 md:top-[2.5rem] md:w-80 md:-translate-x-1/2 md:p-6 md:text-center">
                 <h3 className="font-school-heading text-lg font-semibold text-[#293b4d]">Awal berdiri</h3>
                 <p className="mt-2 whitespace-pre-line text-sm leading-6 text-[#5d6977] line-clamp-4">{history}</p>
               </div>
             </li>
-            <li className="relative grid min-h-[12rem] grid-cols-[2.5rem_1fr] gap-x-4 md:block md:min-h-[26rem]">
+            <li className="relative grid min-h-[12rem] grid-cols-[2.5rem_1fr] gap-x-4 md:block md:min-h-[29rem]">
               <p className="col-start-2 row-start-1 text-left font-school-heading text-xl font-bold text-[#28394a] md:absolute md:inset-x-0 md:top-0 md:text-center">Kini</p>
-              <span aria-hidden="true" className="relative z-10 col-start-1 row-span-2 row-start-1 flex h-10 w-10 items-center justify-center self-start rounded-full border-4 border-white bg-[#e21f33] text-white shadow-[0_0_0_3px_#fde5e7] md:absolute md:left-1/2 md:top-[11rem] md:-translate-x-1/2">
+              <span aria-hidden="true" className="relative z-10 col-start-1 row-span-2 row-start-1 flex h-10 w-10 items-center justify-center self-start rounded-full border-4 border-white bg-[#e21f33] text-white shadow-[0_0_0_3px_#fde5e7] md:absolute md:left-1/2 md:top-[12.75rem] md:-translate-x-1/2">
                 <Sparkles className="h-4 w-4" />
               </span>
-              <div className="col-start-2 row-start-2 rounded-xl border border-[#e9eaed] bg-[#f8f9fa] p-5 text-left md:absolute md:left-1/2 md:top-[14rem] md:w-80 md:-translate-x-1/2 md:p-6 md:text-center">
+              <div className="col-start-2 row-start-2 rounded-xl border border-[#e9eaed] bg-[#f8f9fa] p-5 text-left md:absolute md:left-1/2 md:top-[16rem] md:w-80 md:-translate-x-1/2 md:p-6 md:text-center">
                 <h3 className="font-school-heading text-lg font-semibold text-[#293b4d]">Terus berkembang</h3>
                 <p className="mt-2 whitespace-pre-line text-sm leading-6 text-[#5d6977] line-clamp-4">{schoolJourney}</p>
               </div>
