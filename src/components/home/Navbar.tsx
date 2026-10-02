@@ -22,7 +22,9 @@ const NAV_LINKS: Array<{
   { label: 'Beranda', href: ROUTES.beranda },
   { label: 'Tentang', href: ROUTES.tentang, menu: [
     { label: 'Profil & sejarah', href: ROUTES.tentang },
-    { label: 'Visi & misi', href: '/profil#visi-misi' },
+    { label: 'Sambutan kepala sekolah', href: '/profil#sambutan' },
+    { label: 'Sejarah sekolah', href: '/profil#sejarah' },
+    { label: 'Perjalanan sekolah', href: '/profil#perjalanan-sekolah' },
     { label: 'Tenaga pendidik', href: '/profil#tenaga-pendidik' },
     { label: 'Fasilitas sekolah', href: ROUTES.fasilitas },
   ] },
@@ -48,6 +50,7 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
+  const [isScrolled, setIsScrolled] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const navContainerRef = useRef<HTMLElement | null>(null);
 
@@ -55,6 +58,15 @@ export function Navbar() {
   const isHome = pathname === '/';
   const tone = isHome ? 'text-white hover:text-white/80' : 'text-[#253b49] hover:text-[#54778c]';
   const navUnderline = isHome ? 'after:bg-white' : 'after:bg-[var(--accent)]';
+
+  // Beranda memakai navbar fixed agar tetap terlihat saat scroll.
+  // Latar dibuat solid setelah hero lewat supaya menu tetap terbaca.
+  useEffect(() => {
+    const updateScrollState = () => setIsScrolled(window.scrollY > 24);
+    updateScrollState();
+    window.addEventListener('scroll', updateScrollState, { passive: true });
+    return () => window.removeEventListener('scroll', updateScrollState);
+  }, [pathname]);
 
   // Tutup dropdown dan mobile drawer saat berpindah rute
   // (pola "reset state saat prop berubah" dari React, tanpa setState di effect).
@@ -130,7 +142,7 @@ export function Navbar() {
   return (
     <header
       ref={navContainerRef}
-      className={`z-40 w-full ${isHome ? 'absolute top-0 border-b border-white/20 bg-[#09243b]/10' : 'sticky top-0 border-b border-[#dce5e1] bg-[#f8faf8]/95 backdrop-blur'}`}
+      className={`z-40 w-full transition-colors duration-300 ${isHome ? `fixed top-0 ${isScrolled ? 'border-b border-white/10 bg-[#09243b]/95 shadow-md backdrop-blur' : 'border-b border-white/20 bg-[#09243b]/10'}` : 'sticky top-0 border-b border-[#dce5e1] bg-[#f8faf8]/95 backdrop-blur'}`}
     >
       <div className="mx-auto flex h-[82px] max-w-7xl items-center justify-between px-5 sm:px-8">
         <Link href="/" className={`group flex items-center gap-3 ${isHome ? 'text-white' : 'text-[#172b3a]'}`}>
