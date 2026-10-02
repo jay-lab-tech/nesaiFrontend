@@ -23,6 +23,7 @@ const NAV_LINKS: Array<{
   { label: 'Tentang', href: ROUTES.tentang, menu: [
     { label: 'Profil & sejarah', href: ROUTES.tentang },
     { label: 'Sambutan kepala sekolah', href: '/profil#sambutan' },
+    { label: 'Visi & Misi', href: '/profil#visi-misi' },
     { label: 'Sejarah sekolah', href: '/profil#sejarah' },
     { label: 'Perjalanan sekolah', href: '/profil#perjalanan-sekolah' },
     { label: 'Tenaga pendidik', href: '/profil#tenaga-pendidik' },
