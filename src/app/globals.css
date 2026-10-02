@@ -161,3 +161,40 @@ button {
 .sticky-bottom-bar {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
+
+/* Scroll reveals shared by public pages and the CMS. The first viewport stays visible;
+   sections and cards below it enter with a clear, staggered lift as they are reached. */
+.scroll-motion {
+  opacity: 0;
+  transform: translate3d(0, 40px, 0) scale(0.975);
+  transition:
+    opacity 720ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 720ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    filter 720ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  transition-delay: var(--scroll-motion-delay, 0ms);
+}
+
+.scroll-motion-card {
+  transform: translate3d(var(--scroll-motion-x, 0px), 30px, 0) scale(0.97);
+  filter: blur(3px);
+}
+
+.scroll-motion-visible {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+.scroll-motion-pending {
+  will-change: opacity, transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-motion,
+  .scroll-motion-card {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    transition: none !important;
+  }
+}

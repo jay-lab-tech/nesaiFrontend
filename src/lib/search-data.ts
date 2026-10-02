@@ -331,13 +331,6 @@ export const SEARCH_DOCUMENTS: SearchDocument[] = [
     keywords: 'PPDB pilih jurusan program keahlian seleksi pengumuman hasil diterima',
   },
   {
-    title: 'Visi dan Misi SMKN 1 Subang',
-    description: 'Sekolah menyiapkan lulusan yang berkarakter agamis, berjiwa wirausaha, mampu beradaptasi dengan perkembangan zaman, kompeten, peduli lingkungan, dan mendukung implementasi BLUD.',
-    href: '/profil#visi-misi',
-    category: 'Profil',
-    keywords: 'visi misi karakter agamis wirausaha adaptasi kompeten lingkungan BLUD nilai sekolah',
-  },
-  {
     title: 'Alamat SMKN 1 Subang',
     description: 'SMKN 1 Subang beralamat di Jl. Arief Rahman Hakim No. 35, Kelurahan Cigadung, Kecamatan Subang, Kabupaten Subang, Jawa Barat 41213.',
     href: '/kontak',
