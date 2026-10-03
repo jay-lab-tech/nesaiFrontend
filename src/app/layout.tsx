@@ -22,6 +22,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "SMKN 1 Subang — NESAS Pusat Keunggulan",
   description: "Website resmi SMKN 1 Subang — Informasi jurusan, PPDB, fasilitas, prestasi, dan asisten virtual cerdas NESAI.",
+  manifest: "/site.webmanifest",
 };
 
 export default function RootLayout({

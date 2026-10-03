@@ -17,6 +17,10 @@ import {
   Truck,
   UtensilsCrossed,
   Calendar,
+  Compass,
+  GraduationCap,
+  BriefcaseBusiness,
+  MessageCircleQuestion,
 } from 'lucide-react';
 import { HeroSection } from '@/components/home/HeroSection';
 import { KeunggulanSection } from '@/components/home/KeunggulanSection';
@@ -62,6 +66,37 @@ const JURUSAN_ICONS: Record<string, typeof Code2> = {
   Truck,
   UtensilsCrossed,
 };
+
+const START_PATHS = [
+  {
+    number: '01',
+    icon: GraduationCap,
+    title: 'Saya calon siswa',
+    description: 'Kenali suasana belajar, kegiatan, dan pilihan yang bisa kamu ambil di NESAS.',
+    href: '#jurusan',
+  },
+  {
+    number: '02',
+    icon: Compass,
+    title: 'Cari jurusan yang cocok',
+    description: 'Mulai dari minatmu, lalu temukan program keahlian yang paling sesuai.',
+    href: ROUTES.jurusan,
+  },
+  {
+    number: '03',
+    icon: BriefcaseBusiness,
+    title: 'Lihat karya dan masa depan',
+    description: 'Lihat proyek siswa, pengalaman industri, prestasi, dan jejak alumni.',
+    href: ROUTES.karyaIndustri,
+  },
+  {
+    number: '04',
+    icon: MessageCircleQuestion,
+    title: 'Saya masih bingung',
+    description: 'Tanyakan apa saja kepada NESAI dan dapatkan arahan untuk mulai menjelajah.',
+    href: ROUTES.nesai,
+  },
+] as const;
 
 function formatDate(value?: string | null): string {
   if (!value) return '';
@@ -123,27 +158,64 @@ export default function HomePage() {
       {/* 4.1 — Hero */}
       <HeroSection />
 
+      {/* Panduan awal — jalur masuk berdasarkan kebutuhan pengunjung */}
+      <section id="mulai" className="narrative-section border-b border-slate-200 bg-white py-12 sm:py-14">
+        <div className="mx-auto grid max-w-7xl gap-8 px-5 sm:px-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-start lg:gap-16">
+          <div className="max-w-md">
+            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-[var(--accent-text)]">
+              <span className="h-px w-7 bg-[var(--accent)]" /> Panduan singkat
+            </p>
+            <h2 className="font-school-heading mt-4 text-2xl font-bold leading-tight tracking-[-0.03em] text-[var(--brand)] sm:text-3xl">
+              Mulai dari sini.
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-slate-600 sm:text-[15px]">
+              Setiap orang datang dengan pertanyaan yang berbeda. Pilih jalur yang paling sesuai, lalu kami bantu menemukan informasi yang kamu butuhkan.
+            </p>
+          </div>
+
+          <div className="border-t border-slate-300">
+            {START_PATHS.map(({ number, icon: Icon, title, description, href }) => (
+              <Link
+                key={number}
+                href={href}
+                className="group grid grid-cols-[2.25rem_2.25rem_1fr_auto] items-center gap-3 border-b border-slate-200 py-4 transition-colors hover:border-[var(--accent)] sm:grid-cols-[2.75rem_2.5rem_1fr_auto] sm:gap-4 sm:py-4"
+              >
+                <span className="text-xs font-bold tracking-[0.14em] text-slate-400 transition-colors group-hover:text-[var(--accent-text)]">{number}</span>
+                <span className="flex h-9 w-9 items-center justify-center border border-slate-300 text-[var(--brand)] transition-colors group-hover:border-[var(--accent)] group-hover:bg-[var(--accent)] sm:h-10 sm:w-10">
+                  <Icon className="h-4 w-4" strokeWidth={1.8} />
+                </span>
+                <span className="min-w-0">
+                  <span className="block font-school-heading text-base font-bold text-[var(--brand)] sm:text-lg">{title}</span>
+                  <span className="mt-1 block max-w-xl text-xs leading-5 text-slate-500 sm:text-sm">{description}</span>
+                </span>
+                <ArrowUpRight className="h-5 w-5 text-slate-400 transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[var(--brand)]" />
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Sambutan Kepala Sekolah (dipertahankan di Beranda sesuai keputusan produk) */}
-      <section id="sambutan" className="narrative-section border-b border-slate-200 bg-white py-16 sm:py-20">
-        <div className="mx-auto grid max-w-7xl gap-8 px-5 sm:px-8 lg:grid-cols-12 lg:gap-10">
+      <section id="sambutan" className="narrative-section relative z-10 -mt-16 border-b border-slate-200 bg-[var(--background)] pb-16 pt-10 sm:-mt-20 sm:pb-20 sm:pt-12">
+        <div className="mx-auto grid max-w-7xl gap-12 px-5 sm:px-8 lg:grid-cols-12 lg:gap-14">
           {/* Pengumuman (API/fallback) */}
           <div className="lg:col-span-5">
-            <div className="overflow-hidden border border-slate-200 bg-white shadow-[0_10px_25px_-15px_rgba(15,30,54,0.18)]">
-              <div className="flex items-center justify-between bg-[var(--brand)] px-5 py-4 text-white">
+            <div className="border-t-2 border-[var(--brand)]">
+              <div className="flex items-center justify-between border-b border-slate-200 px-1 py-4 text-[var(--brand)]">
                 <span className="flex items-center gap-2 text-sm font-bold tracking-wide">
                   <Bell className="h-4 w-4 text-[var(--accent)]" /> PENGUMUMAN SEKOLAH
                 </span>
-                <span className="bg-[var(--accent)] px-2 py-0.5 text-[10px] font-bold text-[var(--brand)]">TERKINI</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--accent-text)]">Terkini</span>
               </div>
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-slate-200">
                 {newsList.length > 0
                   ? newsList.slice(0, 3).map((item, idx) => (
                       <Link
                         key={item.id || idx}
                         href={item.slug ? `/berita/${item.slug}` : ROUTES.berita}
-                        className="group flex gap-3 p-4 transition hover:bg-slate-50"
+                        className="group flex gap-4 px-1 py-5 transition hover:pl-3"
                       >
-                        <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center border border-slate-200 bg-slate-50 text-[9px] font-bold tracking-wide text-[var(--brand-soft)]">
+                        <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center border border-[var(--accent)] text-[9px] font-bold tracking-wide text-[var(--brand-soft)]">
                           {idx === 0 ? 'INFO' : idx === 1 ? 'BERITA' : 'AGENDA'}
                         </span>
                         <span>
@@ -157,8 +229,8 @@ export default function HomePage() {
                       </Link>
                     ))
                   : KEGIATAN.fallbackItems.map((item) => (
-                      <Link key={item.id} href={item.href} className="group flex gap-3 p-4 transition hover:bg-slate-50">
-                        <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center border border-slate-200 bg-slate-50 text-[9px] font-bold tracking-wide text-[var(--brand-soft)]">
+                      <Link key={item.id} href={item.href} className="group flex gap-4 px-1 py-5 transition hover:pl-3">
+                        <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center border border-[var(--accent)] text-[9px] font-bold tracking-wide text-[var(--brand-soft)]">
                           {item.tag.slice(0, 5).toUpperCase()}
                         </span>
                         <span>
@@ -172,7 +244,7 @@ export default function HomePage() {
               </div>
               <Link
                 href={ROUTES.berita}
-                className="flex items-center justify-center gap-1 border-t border-slate-200 bg-slate-50 px-4 py-3 text-xs font-bold tracking-wide text-[var(--brand)] hover:text-[var(--accent-text)]"
+                className="flex items-center gap-1 border-t border-slate-200 px-1 py-4 text-xs font-bold tracking-wide text-[var(--brand)] hover:text-[var(--accent-text)]"
               >
                 LIHAT SEMUA PENGUMUMAN <ChevronRight className="h-3 w-3" />
               </Link>
@@ -181,8 +253,8 @@ export default function HomePage() {
 
           {/* Sambutan */}
           <div className="lg:col-span-7">
-            <div className="border border-slate-200 bg-white p-6 sm:p-8">
-              <div className="flex items-center gap-3 border-b-2 border-[var(--accent)] pb-4">
+            <div className="h-full border-t-2 border-[var(--accent)] pt-5 lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">
+              <div className="flex items-center gap-3 border-b border-slate-200 pb-4">
                 <h2 className="font-school-heading text-xl font-bold text-[var(--brand)]">{SAMBUTAN.heading}</h2>
                 <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
               </div>

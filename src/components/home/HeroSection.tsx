@@ -9,7 +9,7 @@ import { HERO } from '@/lib/site-data';
  */
 export function HeroSection() {
   return (
-    <section className="relative flex min-h-[640px] items-center overflow-hidden bg-[var(--brand)] pb-16 pt-[82px] text-white sm:min-h-[100dvh]">
+    <section className="relative flex min-h-[640px] items-center overflow-hidden bg-[var(--brand)] pb-32 pt-[82px] text-white sm:min-h-[100dvh] sm:pb-36">
       {/* Foto asli (TODO: ganti foto resmi). Overlay solid, bukan gradasi berwarna. */}
       <div className="absolute inset-0">
         <Image
@@ -37,10 +37,10 @@ export function HeroSection() {
 
           <div className="mt-9 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row">
             <Link
-              href={HERO.primaryCta.href}
+              href="#mulai"
               className="inline-flex w-full items-center justify-center gap-2 bg-[var(--accent)] px-7 py-3.5 text-sm font-bold text-[var(--brand)] transition hover:bg-[#ffc83d] sm:w-auto"
             >
-              {HERO.primaryCta.label}
+              Mulai Jelajah
               <ArrowUpRight className="h-4 w-4" />
             </Link>
             <Link
